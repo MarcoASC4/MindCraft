@@ -2,3 +2,7 @@ Hello world!
 
 This is from Joe
 
+<<<<<<< HEAD
+This is Noah!
+=======
+>>>>>>> 78b1df9c7469416191c0ec7a5ef1cd245c128af7
