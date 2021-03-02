@@ -5,6 +5,7 @@ CANVAS_HEIGHT = 400;
 function setup() {
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
 }
+
 // Draws the button and the text on top of it
 function draw() {
   // 255 corresponds to a White background 
