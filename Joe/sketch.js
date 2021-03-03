@@ -1,6 +1,7 @@
 CANVAS_WIDTH = 400;
 CANVAS_HEIGHT = 400;
 
+
 // Creates the canvas
 function setup() {
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
