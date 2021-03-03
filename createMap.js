@@ -1,5 +1,5 @@
-CANVAS_WIDTH = 500;
-CANVAS_HEIGHT = 500;
+CANVAS_WIDTH =400;
+CANVAS_HEIGHT = 400;
 
 // Node Class
 // grabbed => indicates if the node is being 'grabbed' by the mouse
@@ -11,15 +11,21 @@ var node = {
   grabbed: false
 }
 
+var inp;
+
 // Creates the canvas
 function setup() {
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
   background(66, 135, 245);
-
-  // Input Text Field over node
-  let inp = createInput('');
+  inp = createInput();
   inp.input(myInputEvent);
   inp.position(112,node.y - 7);
+  inp.changed(textFromBox);
+  // Input Text Field over node
+}
+
+function textFromBox() {
+  console.log(inp.value());
 }
 
 function myInputEvent() {
@@ -33,6 +39,7 @@ function draw(){
   background(66, 135, 245);
   // Draws our node
   ellipse(node.x, node.y, node.diameter, node.radius);
+  text(inp.value(), node.x - node.radius, node.y);
   //  print(grabbed);
 }
 
