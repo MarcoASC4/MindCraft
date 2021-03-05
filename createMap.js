@@ -19,7 +19,9 @@ function setup() {
   background(66, 135, 245);
   inp = createInput();
   inp.input(myInputEvent);
-  inp.position(112,node.y - 7);
+  inp.position(200,10);
+  inp.size(10,40);
+  inp.style('backround-color', color(255,255,255));
   inp.changed(textFromBox);
   // Input Text Field over node
 }
@@ -39,7 +41,8 @@ function draw(){
   background(66, 135, 245);
   // Draws our node
   ellipse(node.x, node.y, node.diameter, node.radius);
-  text(inp.value(), node.x - node.radius, node.y);
+  textAlign(CENTER);
+  text(inp.value(), node.x, node.y);
   //  print(grabbed);
 }
 
