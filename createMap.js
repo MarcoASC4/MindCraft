@@ -7,7 +7,7 @@ CANVAS_HEIGHT = 1080;
 //  x: 200,
 //  y: 200,
 //  diameter: 200,
-//  radius: 100,
+//  height: 100,
 //  grabbed: false
 //}
 
@@ -29,10 +29,10 @@ function addValue() {
 }
 
 function addNode() {
-  node1 = new Node(200+(value*100),200,200,100,false);
+  node1 = new Node(200+(value*100),200,200,100,50,50,50,50,false, false);
 
   node1.inp.input(myInputEvent);
-  node1.inp.position(150+(value*100),215);
+  node1.inp.position(250+(value*100),270);
   node1.inp.size(100,40);
   node1.inp.style('backround-color', color(255,255,255));
   node1.inp.changed(textFromBox);
@@ -54,6 +54,12 @@ function setup() {
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
   background(66, 135, 245);
 
+  scaleXslider = createSlider(-3, 3, 1, 0.1); 
+  scaleXslider.position(700, 25); 
+  
+  scaleYslider = createSlider(-3, 3, 1, 0.1); 
+  scaleYslider.position(700, 40);
+
   //node1 = new Node(200+(value*20),200,200,100,false);
   //node.push(node1);
 
@@ -68,7 +74,10 @@ function setup() {
 }
 
 function textFromBox() {
-  console.log(inp.value());
+  //console.log(this.value());
+  this.text = this.value();
+  console.log(this.text);
+
 }
 
 function myInputEvent() {
@@ -85,37 +94,41 @@ function draw(){
   // the node when we drag it around
   background(66, 135, 245);
   // Draws our node
-  //ellipse(node.x, node.y, node.diameter, node.radius);
+  //ellipse(node.x, node.y, node.diameter, node.height);
   textAlign(CENTER);
   //text(inp.value(), node.x, node.y);
   show(mouseX, mouseY);
   //  print(grabbed);
+
 }
 
 class Node {
-  constructor(x, y, diameter, radius, grabbed, text, resize) {
+  constructor(x, y, width, height, round1, round2, round3, round4, grabbed, resize) {
     this.x = x;
     this.y = y;
-    this.diameter = diameter;
-    this.radius = radius;
+    this.width = width;
+    this.height = height;
+    this.round1 = round1;
+    this.round2 = round2;
+    this.round3 = round3;
+    this.round4 = round4;
     this.grabbed = grabbed;
+    this.resize = resize;
     this.offsetX = 0;
     this.offsetY = 0;
-    this.text = text;
+    this.text = '';
     this.inp = createInput();
-    this.resize = resize;
+    //this.resize = resize;
   }
 
   clicked(px, py) {
-    let d = dist(px, py, this.x , this.y);
-    if (d < this.radius) {
+    //let d = dist(px, py, this.x , this.y);
+    if ((px > this.x && px < (this.x + this.width)) && ((py > this.y) && py < (this.y + this.height))) {
       this.grabbed = true;
       this.offsetX = this.x - px;
       this.offsetY = this.y - py;
+
     }
-    //else if(px == this.x && py == this.y){
-    //  this.resize = true;
-    //}
 
   }
   notClicked(px, py){
@@ -123,6 +136,10 @@ class Node {
     this.resize = false;
   }
 
+  dB(px, py){
+    console.log('yes');
+    this.resize = true;
+  }
 }
 
 var k;
@@ -139,6 +156,12 @@ function mouseReleased(){
   }
 }
 
+function doubleClicked(){
+  for (k=0; k<node.length; k++){
+    node[k].dB(mouseX, mouseY);
+  }
+}
+
 
 var i = 0;
 
@@ -147,15 +170,17 @@ function show(px, py) {
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
   for (i=0; i<=value-1; i++){
-    ellipse(node[i].x, node[i].y, node[i].diameter, node[i].radius, node[i].grabbed);
+    rect(node[i].x, node[i].y, node[i].width, node[i].height, node[i].round1, node[i].round2, node[i].round3, node[i].round5, node[i].grabbed);
     if(node[i].grabbed) {
       node[i].x = px + node[i].offsetX;
       node[i].y = py + node[i].offsetY;
-      node[i].inp.position(px + node[i].offsetX - 50, py + node[i].offsetY+15);
+      node[i].inp.position(px + node[i].offsetX+50, py + node[i].offsetY+70);
     }
 
     if(node[i].resize) {
-      node[i].scale(mouseX / 400, mouseY / 400);
+      let scaleXValue = scaleXslider.value(); 
+      let scaleYValue = scaleYslider.value(); 
+      scale(scaleXValue, scaleYValue);
     }
   }
 }
@@ -164,7 +189,7 @@ function show(px, py) {
   // mousePressed() is triggered when the mouse is clicked
   // Contains logic for checking if our mouse click is INSIDE the node
   let d = dist(mouseX, mouseY, node.x, node.y);
-  if (d < node.radius) {
+  if (d < node.height) {
     node.grabbed = true;
   } else {
     node.grabbed = false;
