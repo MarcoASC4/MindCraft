@@ -19,6 +19,8 @@ let node = [];
 let inputs = [];
 var j;
 let px, py;
+var inputXVal = 100;
+var inputYVal = 40;
 // Creates the canvas
 
 
@@ -53,12 +55,6 @@ function addNode() {
 function setup() {
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
   background(66, 135, 245);
-
-  scaleXslider = createSlider(-3, 3, 1, 0.1); 
-  scaleXslider.position(700, 25); 
-  
-  scaleYslider = createSlider(-3, 3, 1, 0.1); 
-  scaleYslider.position(700, 40);
 
   //node1 = new Node(200+(value*20),200,200,100,false);
   //node.push(node1);
@@ -103,7 +99,7 @@ function draw(){
 }
 
 class Node {
-  constructor(x, y, width, height, round1, round2, round3, round4, grabbed, resize) {
+  constructor(x, y, width, height, round1, round2, round3, round4, grabbed, resizeDC, resizeKP) {
     this.x = x;
     this.y = y;
     this.width = width;
@@ -113,7 +109,8 @@ class Node {
     this.round3 = round3;
     this.round4 = round4;
     this.grabbed = grabbed;
-    this.resize = resize;
+    this.resizeDC = resizeDC;
+    this.resizeKP = resizeKP;
     this.offsetX = 0;
     this.offsetY = 0;
     this.text = '';
@@ -133,12 +130,51 @@ class Node {
   }
   notClicked(px, py){
     this.grabbed = false;
-    this.resize = false;
+    //this.resize = false;
   }
 
   dB(px, py){
+    if ((px > this.x && px < (this.x + this.width)) && ((py > this.y) && py < (this.y + this.height))) {
     console.log('yes');
-    this.resize = true;
+    this.resizeDB = !this.resizeDB;
+
+    }
+  }
+
+  kp() {
+    if (this.resizeDB) {
+      if (keyCode == RIGHT_ARROW) {
+        this.width += 10;
+        inputXVal = this.width - 90;
+        this.inp.size(inputXVal, inputYVal)
+      }
+      else if (keyCode == LEFT_ARROW) {
+        if (this.width < 200){
+          
+        }
+        else{
+          this.width -= 10;
+        }
+        inputXVal = this.width - 90;
+        this.inp.size(inputXVal, inputYVal)
+      }
+      else if (keyCode == DOWN_ARROW) {
+        this.height += 10;
+        inputYVal = this.height - 40;
+        this.inp.size(inputXVal, inputYVal);
+      }
+      else if (keyCode == UP_ARROW) {
+        if(this.height < 100){
+
+        }
+        else{
+          this.height -= 10;
+        }
+        inputYVal = this.height - 40;
+        this.inp.size(inputXVal, inputYVal);
+      }
+    }
+
   }
 }
 
@@ -159,6 +195,13 @@ function mouseReleased(){
 function doubleClicked(){
   for (k=0; k<node.length; k++){
     node[k].dB(mouseX, mouseY);
+    
+  }
+}
+
+function keyPressed() {
+  for (k=0; k<node.length; k++){
+    node[k].kp();
   }
 }
 
@@ -177,11 +220,6 @@ function show(px, py) {
       node[i].inp.position(px + node[i].offsetX+50, py + node[i].offsetY+70);
     }
 
-    if(node[i].resize) {
-      let scaleXValue = scaleXslider.value(); 
-      let scaleYValue = scaleYslider.value(); 
-      scale(scaleXValue, scaleYValue);
-    }
   }
 }
 
