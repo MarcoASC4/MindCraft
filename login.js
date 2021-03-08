@@ -20,7 +20,7 @@
       const promise = auth.createUserWithEmailAndPassword(email.value, password.value);
       promise.catch(e => alert(e.message));
 
-      window.location.href = "test.html";
+      window.location.href = "mindMap.html";
 
       alert("Welcome");
 
