@@ -13,6 +13,26 @@
 
   const auth = firebase.auth();
 
+  /*function newUser(){
+    var email = document.getElementById("email");
+    var password = document.getElementById("password");
+    auth.createUserWithEmailAndPwd(email, password).catch(function(error){
+      var errorCode = error.code;
+      var errorMessage = error.message;
+
+
+    });
+      .then((userCredential) => {
+        var user = userCredential.user;
+
+      })
+      .catch((error) => {
+        
+        // ..
+      });
+  }*/
+  
+
   function newUser(){
       var email = document.getElementById("email");
       var password = document.getElementById("password");
