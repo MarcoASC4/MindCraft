@@ -13,9 +13,9 @@ CANVAS_HEIGHT = 1080;
 
 var inp;
 var numOfNodes = 1;
-var value = 0;
+var numNodes = 0;
 var valSet = 1;
-let node = [];
+let nodes = [];
 let inputs = [];
 var j;
 let px, py;
@@ -24,29 +24,24 @@ var inputYVal = 40;
 // Creates the canvas
 
 
-function addValue() {
-  value++;
-  addNode();
-  console.log(value);
-}
-
 function addNode() {
-  node1 = new Node(200+(value*100),200,200,100,50,50,50,50,false, false);
+  numNodes++;
+  node1 = new Node(200+(numNodes*100),200,200,100,50,50,50,50,false, false);
 
   node1.inp.input(myInputEvent);
-  node1.inp.position(250+(value*100),270);
+  node1.inp.position(250+(numNodes*100),270);
   node1.inp.size(100,40);
   node1.inp.style('backround-color', color(255,255,255));
   node1.inp.changed(textFromBox);
 
-  node.push(node1);
+  nodes.push(node1);
   inputs.push(node1.inp);
 
 
   draw();
 
 
-  //for(j=0; j<=value; j++){
+  //for(j=0; j<=numNodes; j++){
   //  node[j] = new Node(200+(j*20),200,200,100,false);
   //  }
 
@@ -55,30 +50,18 @@ function addNode() {
 function setup() {
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
   background(66, 135, 245);
-
-  //node1 = new Node(200+(value*20),200,200,100,false);
-  //node.push(node1);
-
-  /*inp = createInput();
-  inp.input(myInputEvent);
-  inp.position(200+(value*20),200);
-  inp.size(250,40);
-  inp.style('backround-color', color(255,255,255));
-  inp.changed(textFromBox);
-  inputs.push(inp);*/
-  // Input Text Field over node
 }
 
 function textFromBox() {
-  //console.log(this.value());
-  this.text = this.value();
+  //console.log(this.numNodes());
+  this.text = this.numNodes();
   console.log(this.text);
 
 }
 
 function myInputEvent() {
   // Prints whatever is being typed into inp
-    console.log('you are typing: ', this.value());
+    console.log('you are typing: ', this.numNodes());
   }
 
 function test(){
@@ -92,11 +75,12 @@ function draw(){
   // Draws our node
   //ellipse(node.x, node.y, node.diameter, node.height);
   textAlign(CENTER);
-  //text(inp.value(), node.x, node.y);
-  show(mouseX, mouseY);
+  //text(inp.numNodes(), node.x, node.y);
+  displayNodes(mouseX, mouseY);
   //  print(grabbed);
 
 }
+
 
 class Node {
   constructor(x, y, width, height, round1, round2, round3, round4, grabbed, resizeDC, resizeKP) {
@@ -118,7 +102,7 @@ class Node {
     //this.resize = resize;
   }
 
-  clicked(px, py) {
+  checkClicked(px, py) {
     //let d = dist(px, py, this.x , this.y);
     if ((px > this.x && px < (this.x + this.width)) && ((py > this.y) && py < (this.y + this.height))) {
       this.grabbed = true;
@@ -128,20 +112,15 @@ class Node {
     }
 
   }
-  notClicked(px, py){
-    this.grabbed = false;
-    //this.resize = false;
-  }
 
-  dB(px, py){
+  checkDoubleClick(px, py){
     if ((px > this.x && px < (this.x + this.width)) && ((py > this.y) && py < (this.y + this.height))) {
     console.log('yes');
     this.resizeDB = !this.resizeDB;
-
     }
   }
 
-  kp() {
+  checkKeyPress() {
     if (this.resizeDB) {
       if (keyCode == RIGHT_ARROW) {
         this.width += 10;
@@ -181,43 +160,44 @@ class Node {
 var k;
 
 function mousePressed(){
-  for (k=0; k<node.length; k++) {
-    node[k].clicked(mouseX, mouseY);
+  for (k=0; k<nodes.length; k++) {
+    nodes[k].checkClicked(mouseX, mouseY);
   }
 }
 
 function mouseReleased(){
-  for (k=0; k<node.length; k++){
-    node[k].notClicked();
+  for (k=0; k<nodes.length; k++){
+    nodes[k].grabbed = false;
   }
 }
 
 function doubleClicked(){
-  for (k=0; k<node.length; k++){
-    node[k].dB(mouseX, mouseY);
+  for (k=0; k<nodes.length; k++){
+    nodes[k].checkDoubleClick(mouseX, mouseY);
     
   }
 }
 
 function keyPressed() {
-  for (k=0; k<node.length; k++){
-    node[k].kp();
+  for (k=0; k<nodes.length; k++){
+    nodes[k].checkKeyPress();
   }
 }
 
 
 var i = 0;
 
-function show(px, py) {
+function displayNodes(px, py) {
   stroke(51);
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
-  for (i=0; i<=value-1; i++){
-    rect(node[i].x, node[i].y, node[i].width, node[i].height, node[i].round1, node[i].round2, node[i].round3, node[i].round5, node[i].grabbed);
-    if(node[i].grabbed) {
-      node[i].x = px + node[i].offsetX;
-      node[i].y = py + node[i].offsetY;
-      node[i].inp.position(px + node[i].offsetX+50, py + node[i].offsetY+70);
+  for (i=0; i<=numNodes-1; i++){
+    rect(nodes[i].x, nodes[i].y, nodes[i].width, nodes[i].height, nodes[i].round1, nodes[i].round2, nodes[i].round3, nodes[i].round5, nodes[i].grabbed);
+    if(nodes[i].grabbed) {
+      // Movement
+      nodes[i].x = px + nodes[i].offsetX;
+      nodes[i].y = py + nodes[i].offsetY;
+      nodes[i].inp.position(px + nodes[i].offsetX+50, py + nodes[i].offsetY+70);
     }
 
   }
