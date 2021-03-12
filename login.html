@@ -8,8 +8,8 @@
 
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.10/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.10/firebase-auth.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js"></script>
     <script src="login.js"></script>
   </head>
 
@@ -18,13 +18,13 @@
 
         <div class="container">
           <label for="uname"><b>Email</b></label>
-          <input id="email" type="text" placeholder="Enter Email" name="uname" required>
+          <input id="email" type="email" placeholder="Enter Email" name="uname" required>
 
           <label for="psw"><b>Password</b></label>
           <input  id="password" type="password" placeholder="Enter Password" name="psw" required>
 
-          <button type="submit" onclick="logIn()" id="logIn">Log In</button>
-          <button type="submit" onclick="newUser()" id="createUser">Create Account</button>
+          <button onclick="logIn()" id="logIn">Log In</button>
+          <button onclick="newUser()" id="createUser"> Create Account</button>
 
 
         </div>

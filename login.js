@@ -1,8 +1,8 @@
-
   // Your web app's Firebase configuration
   var firebaseConfig = {
     apiKey: "AIzaSyCJuTDil5mz0rsHrmBTlKSh0nPstEbwd3s",
     authDomain: "mind-barf-e6745.firebaseapp.com",
+    databaseURL: "https://mind-barf-e6745-default-rtdb.firebaseio.com",
     projectId: "mind-barf-e6745",
     storageBucket: "mind-barf-e6745.appspot.com",
     messagingSenderId: "339425742596",
@@ -13,36 +13,23 @@
 
   const auth = firebase.auth();
 
-  /*function newUser(){
-    var email = document.getElementById("email");
-    var password = document.getElementById("password");
-    auth.createUserWithEmailAndPwd(email, password).catch(function(error){
-      var errorCode = error.code;
-      var errorMessage = error.message;
-
-
-    });
-      .then((userCredential) => {
-        var user = userCredential.user;
-
-      })
-      .catch((error) => {
-        
-        // ..
-      });
-  }*/
-  
-
   function newUser(){
       var email = document.getElementById("email");
       var password = document.getElementById("password");
 
-      const promise = auth.createUserWithEmailAndPassword(email.value, password.value);
-      promise.catch(e => alert(e.message));
+      auth.createUserWithEmailAndPassword(email.value, password.value)
+      .then(function(){
+        window.location.href = "test.html";
 
-      window.location.href = "test.html";
+      })
+      .catch(function(error) {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log("Failed login + REASON: " + errorMessage + " CODE: " + 
+      errorCode)
+      });
 
-      alert("Welcome");
+      alert("Welcome: " + email.value);
 
   };
 
@@ -50,11 +37,29 @@
     var email = document.getElementById("email");
     var password = document.getElementById("password");
 
-    const promise = auth.signInWithEmailAndPassword(email.value, password.value);
-    promise.catch(e => alert(e.message));
+    auth.signInWithEmailAndPassword(email.value, password.value)
+    .then(function(){
+      window.location.href = "test.html";
 
-    alert("Logged In");
+    })
+    .catch(function(error) {
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      console.log("Failed login + REASON: " + errorMessage + " CODE: " + 
+    errorCode)
+    });
+    
 
-    window.location.href = "test.html";
+    alert("Logged In: " + email.value);
 
   };
+
+  /*auth.onAuthStateChange(function(user){
+    if(user){
+      var email = user.email;
+      alert("Active User" + email);
+    }
+    else{
+      alert("No Active User");
+    }
+})*/
