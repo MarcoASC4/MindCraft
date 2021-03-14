@@ -1,3 +1,5 @@
+
+
 CANVAS_WIDTH =1920;
 CANVAS_HEIGHT = 1080;
 
@@ -12,9 +14,11 @@ CANVAS_HEIGHT = 1080;
 //}
 
 var inp;
-var numOfNodes = 1;
-var numNodes = 0;
+var numnodes = 0;
 var valSet = 1;
+
+//create Empty JSON Graph (we also need a function to import a saved json graph)
+let g = createGraphJSON("title");
 let nodes = [];
 let inputs = [];
 var j;
@@ -23,17 +27,25 @@ var inputXVal = 100;
 var inputYVal = 40;
 // Creates the canvas
 
+var connecting = false;
+var connect1 = [];
+var connect2 = [];
+var connect1Bool = false;
+var connect2Bool = false;
+var twoNodesinp1;
+var twoNodesinp2;
 
 function addNode() {
-  numNodes++;
-  node1 = new Node(200+(numNodes*100),200,200,100,50,50,50,50,false, false);
+  numnodes++;
+  node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false);
 
   node1.inp.input(myInputEvent);
-  node1.inp.position(250+(numNodes*100),270);
+  node1.inp.position(250+(numnodes*100),325);
   node1.inp.size(100,40);
   node1.inp.style('backround-color', color(255,255,255));
   node1.inp.changed(textFromBox);
 
+  g.nodes.push(node1.n);
   nodes.push(node1);
   inputs.push(node1.inp);
 
@@ -41,10 +53,38 @@ function addNode() {
   draw();
 
 
-  //for(j=0; j<=numNodes; j++){
+  //for(j=0; j<=numg.nodes; j++){
   //  node[j] = new Node(200+(j*20),200,200,100,false);
   //  }
 
+}
+
+function addLine() {
+
+  connect1Bool = false;
+  connect2Bool = false;
+  twoNodesinp1 = createInput('');
+  twoNodesinp1.input(myInputEvent);
+  twoNodesinp1.position(800,50);
+  twoNodesinp1.size(80,40);
+  twoNodesinp1.changed(connectingText1);
+
+  twoNodesinp2 = createInput('');
+  twoNodesinp2.input(myInputEvent);
+  twoNodesinp2.position(900,50);
+  twoNodesinp2.size(80,40);
+  twoNodesinp2.changed(connectingText2);
+}
+
+function connectingText1() {
+  connect1.push(twoNodesinp1.value());
+  connect1Bool = true;
+}
+
+function connectingText2() {
+  connect2.push(twoNodesinp2.value());
+  connect2Bool = true;
+  displaynodes();
 }
 
 function setup() {
@@ -53,15 +93,15 @@ function setup() {
 }
 
 function textFromBox() {
-  //console.log(this.numNodes());
-  this.text = this.numNodes();
+  //console.log(this.numnodes());
+  this.text = this.value();
   console.log(this.text);
 
 }
 
 function myInputEvent() {
   // Prints whatever is being typed into inp
-    console.log('you are typing: ', this.numNodes());
+    console.log('you are typing: ', this.value());
   }
 
 function test(){
@@ -75,81 +115,69 @@ function draw(){
   // Draws our node
   //ellipse(node.x, node.y, node.diameter, node.height);
   textAlign(CENTER);
-  //text(inp.numNodes(), node.x, node.y);
-  displayNodes(mouseX, mouseY);
+  //text(inp.numnodes(), node.x, node.y);
+  displaynodes(mouseX, mouseY);
   //  print(grabbed);
 
 }
 
 
 class Node {
-  constructor(x, y, width, height, round1, round2, round3, round4, grabbed, resizeDC, resizeKP) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.round1 = round1;
-    this.round2 = round2;
-    this.round3 = round3;
-    this.round4 = round4;
-    this.grabbed = grabbed;
-    this.resizeDC = resizeDC;
-    this.resizeKP = resizeKP;
-    this.offsetX = 0;
-    this.offsetY = 0;
-    this.text = '';
+  constructor(x, y, width, height, round, grabbed, resizeDC, resizeKP) {
+    this.n = createNodeJSON(x, y, width, height, round, grabbed, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
+    console.log(this.n);
+
     this.inp = createInput();
-    //this.resize = resize;
   }
 
   checkClicked(px, py) {
-    //let d = dist(px, py, this.x , this.y);
-    if ((px > this.x && px < (this.x + this.width)) && ((py > this.y) && py < (this.y + this.height))) {
-      this.grabbed = true;
-      this.offsetX = this.x - px;
-      this.offsetY = this.y - py;
+    //let d = dist(px, py, this.x , this.n.y_pos);
+    if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
+      this.n.grabbed = true;
+      this.n.offsetX = this.n.x_pos - px;
+      this.n.offsetY = this.n.y_pos - py;
 
     }
 
   }
 
   checkDoubleClick(px, py){
-    if ((px > this.x && px < (this.x + this.width)) && ((py > this.y) && py < (this.y + this.height))) {
+    if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
     console.log('yes');
-    this.resizeDB = !this.resizeDB;
+    this.n.resizeDB = !this.n.resizeDB;
     }
   }
 
   checkKeyPress() {
-    if (this.resizeDB) {
+    if (this.n.resizeDB) {
       if (keyCode == RIGHT_ARROW) {
-        this.width += 10;
-        inputXVal = this.width - 90;
+        this.n.width += 10;
+        inputXVal = this.n.width - 90;
         this.inp.size(inputXVal, inputYVal)
       }
       else if (keyCode == LEFT_ARROW) {
-        if (this.width < 200){
+        if (this.n.width < 200){
           
         }
         else{
-          this.width -= 10;
+          this.n.width -= 10;
         }
-        inputXVal = this.width - 90;
+        inputXVal = this.n.width - 90;
         this.inp.size(inputXVal, inputYVal)
       }
       else if (keyCode == DOWN_ARROW) {
-        this.height += 10;
-        inputYVal = this.height - 40;
+        this.n.height += 10;
+        inputYVal = this.n.height - 40;
         this.inp.size(inputXVal, inputYVal);
       }
       else if (keyCode == UP_ARROW) {
-        if(this.height < 100){
+        if(this.n.height < 100){
 
         }
         else{
-          this.height -= 10;
+          this.n.height -= 10;
         }
-        inputYVal = this.height - 40;
+        inputYVal = this.n.height - 40;
         this.inp.size(inputXVal, inputYVal);
       }
     }
@@ -159,6 +187,7 @@ class Node {
 
 var k;
 
+
 function mousePressed(){
   for (k=0; k<nodes.length; k++) {
     nodes[k].checkClicked(mouseX, mouseY);
@@ -167,19 +196,19 @@ function mousePressed(){
 
 function mouseReleased(){
   for (k=0; k<nodes.length; k++){
-    nodes[k].grabbed = false;
+    nodes[k].n.grabbed = false;
   }
 }
 
 function doubleClicked(){
-  for (k=0; k<nodes.length; k++){
+  for (k=0; k<g.nodes.length; k++){
     nodes[k].checkDoubleClick(mouseX, mouseY);
     
   }
 }
 
 function keyPressed() {
-  for (k=0; k<nodes.length; k++){
+  for (k=0; k<g.nodes.length; k++){
     nodes[k].checkKeyPress();
   }
 }
@@ -187,43 +216,66 @@ function keyPressed() {
 
 var i = 0;
 
-function displayNodes(px, py) {
+function displaynodes(px, py) {
   stroke(51);
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
-  for (i=0; i<=numNodes-1; i++){
-    rect(nodes[i].x, nodes[i].y, nodes[i].width, nodes[i].height, nodes[i].round1, nodes[i].round2, nodes[i].round3, nodes[i].round5, nodes[i].grabbed);
-    if(nodes[i].grabbed) {
+  for (i=0; i<=numnodes-1; i++){
+    rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round,nodes[i].n.round,nodes[i].n.round,nodes[i].n.round, nodes[i].n.grabbed);
+    if(nodes[i].n.grabbed) {
       // Movement
-      nodes[i].x = px + nodes[i].offsetX;
-      nodes[i].y = py + nodes[i].offsetY;
-      nodes[i].inp.position(px + nodes[i].offsetX+50, py + nodes[i].offsetY+70);
+      console.log("grabbed");
+      nodes[i].n.x_pos = px + nodes[i].n.offsetX;
+      nodes[i].n.y_pos = py + nodes[i].n.offsetY;
+      nodes[i].inp.position(px + nodes[i].n.offsetX+50, py + nodes[i].n.offsetY+125);
     }
 
   }
-}
 
-/*function mousePressed () {
-  // mousePressed() is triggered when the mouse is clicked
-  // Contains logic for checking if our mouse click is INSIDE the node
-  let d = dist(mouseX, mouseY, node.x, node.y);
-  if (d < node.height) {
-    node.grabbed = true;
-  } else {
-    node.grabbed = false;
+  for (j=0; j<connect1.length; j++){
+    if((connect1Bool == true) && (connect2Bool == true))
+        line(nodes[connect1[j]-1].n.x_pos + nodes[connect1[j]-1].n.width, nodes[connect1[j]-1].n.y_pos+50, nodes[connect2[j]-1].n.x_pos, nodes[connect2[j]-1].n.y_pos+50);
   }
 }
 
-function mouseReleased () {
-  // mouseReleased() is triggered when the mouse click is released
-  node.grabbed = false;
+//create an empty graph JSON object
+function createGraphJSON(title)
+{
+  return {
+    "label": title,
+    "nodes": [], //no nodes
+
+    "edges": [] //no edges
+  };
 }
 
-function mouseDragged() {
-  // Updates the position of the node when being dragged
-  if (node.grabbed) {
-    node.x = mouseX;
-    node.y = mouseY;
-  }
 
-}*/
+//add an edge to a graph JSON object
+function createEdgeJSON(source, target, label)
+{
+  return {
+    source: source,
+    target: target,
+    label:  label
+  };
+}
+
+
+//NODE Methods
+//create a node JSON object
+function createNodeJSON(x, y, width, height, round, grabbed, resizeDC, resizeKP)
+{
+  return {x_pos: x,
+          y_pos: y,
+          width : width,
+          height : height,
+          round : round,
+          grabbed : grabbed,
+          resizeDC : resizeDC,
+          resizeKP : resizeKP,
+          offsetX : 0,
+          offsetY : 0,
+          text : ''
+        };
+
+}

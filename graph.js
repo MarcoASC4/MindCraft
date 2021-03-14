@@ -17,11 +17,11 @@ function getJSONFromURL() {
 
 
 //create an empty graph JSON object
-function createGraph(title)
+function createGraphJSON(title)
 {
   return {"graph": {
     "label": title,
-    "nodes": {}, //no nodes
+    "nodes": [], //no nodes
 
     "edges": [] //no edges
    }
@@ -30,7 +30,7 @@ function createGraph(title)
 
 
 //add an edge to a graph JSON object
-function createEdge(source, target, label)
+function createEdgeJSON(source, target, label)
 {
   return {
     source: source,
@@ -42,12 +42,20 @@ function createEdge(source, target, label)
 
 //NODE Methods
 //create a node JSON object
-function createNode(text, x, y)
+function createNodeJSON(text, x, y, round, grabbed, resizeDC, resizeKP)
 {
   return {text: text,
           x_pos: x,
-          y_pos: y
-          //anything else can go here: color, size, etc. If anything is added, create a get and set method for it below
+          y_pos: y,
+          width : width,
+          height : height,
+          round : round,
+          grabbed : grabbed,
+          resizeDC : resizeDC,
+          resizeKP : resizeKP,
+          offsetX : 0,
+          offsetY : 0,
+          text : ''
         };
 
 }
