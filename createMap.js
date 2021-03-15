@@ -37,9 +37,24 @@ var nodeInput;
 
 var s;
 
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyCJuTDil5mz0rsHrmBTlKSh0nPstEbwd3s",
+    authDomain: "mind-barf-e6745.firebaseapp.com",
+    databaseURL: "https://mind-barf-e6745-default-rtdb.firebaseio.com",
+    projectId: "mind-barf-e6745",
+    storageBucket: "mind-barf-e6745.appspot.com",
+    messagingSenderId: "339425742596",
+    appId: "1:339425742596:web:953a7a9ea744d52197ca51"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const ref = firebase.database().ref("Graphs");
+
 function addNode() {
   numnodes++;
   node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false);
+                     // (x, y, width, height, round_amt, grabbed, resizeDC, resizeKP)
 
   // node1.inp.input(myInputEvent);
   // node1.inp.position(250+(numnodes*100),325);
@@ -48,6 +63,7 @@ function addNode() {
   // node1.inp.changed(textFromBox);
 
   nodes.push(node1);
+  
   //inputs.push(node1.inp);
 
 
@@ -58,6 +74,13 @@ function addNode() {
   //  node[j] = new Node(200+(j*20),200,200,100,false);
   //  }
 
+}
+
+function saveMindMap() {
+  var g = createGraphJSON("testGraph");
+
+  console.log("Saving mindmap...");
+  ref.push(g);
 }
 
 //Accepts input to connect two nodes
@@ -152,8 +175,8 @@ function draw(){
 
 
 class Node {
-  constructor(x, y, width, height, round, grabbed, resizeDC, resizeKP) {
-    this.n = createNodeJSON(x, y, width, height, round, grabbed, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
+  constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP) {
+    this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
     console.log(this.n);
 
     //this.inp = createInput();
@@ -268,7 +291,7 @@ function displaynodes(px, py) {
   //scale(mouseX / 400, mouseY / 400);
   for (i=0; i<=numnodes-1; i++){
     strokeWeight(2);
-    rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round,nodes[i].n.round,nodes[i].n.round,nodes[i].n.round, nodes[i].n.grabbed);
+    rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
     if(nodes[i].n.grabbed) {
       // Movement
       console.log("grabbed");
@@ -307,9 +330,9 @@ function createGraphJSON(title)
           };
   
   for (i = 0; i < nodes.length; i++) g.nodes.push(nodes[i].n);
-  for (i = 0; i < nodes.length; i++) g.edges.push(edges[i]);   
+  //for (i = 0; i < nodes.length; i++) g.edges.push(edges[i]);   
 
-  return g;
+  return g; 
 }
 
 
@@ -325,13 +348,13 @@ function createEdgeJSON(source, target)
 
 //NODE Methods
 //create a node JSON object
-function createNodeJSON(x, y, width, height, round, grabbed, select, resizeDC, resizeKP)
+function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP)
 {
   return {x_pos: x,
           y_pos: y,
           width : width,
           height : height,
-          round : round,
+          round_amt : round_amt,
           grabbed : grabbed,
           select : select,
           resizeDC : resizeDC,
