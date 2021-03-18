@@ -24,6 +24,7 @@ var i = 0;
 let nodes = [];
 let edges = [];
 let inputs = [];
+let deletedNodes = [];
 var j;
 let px, py;
 var inputXVal = 100;
@@ -36,6 +37,10 @@ var twoNodesinp2;
 var nodeInput;
 
 var s;
+var nodeToDelete;
+var deleteNodeInp;
+
+
 
   // Your web app's Firebase configuration
   var firebaseConfig = {
@@ -158,6 +163,24 @@ function test(){
   console.log('Check');
 }
 
+//Text box to enter a node to delete
+function deleteNodeText() {
+  deleteNodeInp = createInput();
+  deleteNodeInp.input(myInputEvent);
+  deleteNodeInp.position(1200,50);
+  deleteNodeInp.size(80,40);
+  deleteNodeInp.changed(deleteNode);
+
+}
+
+//function to delete the node
+function deleteNode() {
+  nodeToDelete = deleteNodeInp.value();
+  deletedNodes.push(nodes[nodeToDelete]);
+  //delete nodes[nodeToDelete-1].n;
+  numnodes -= 1;
+}
+
 function draw(){
   // This background(66, 135, 245) updates the background so that there aren't several copies of
   // the node when we drag it around
@@ -191,16 +214,16 @@ class Node {
   checkClicked(px, py) {
     //let d = dist(px, py, this.x , this.n.y_pos);
     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
-      
-      this.n.grabbed = true;
-      this.n.offsetX = this.n.x_pos - px;
-      this.n.offsetY = this.n.y_pos - py;
-      deSelectAllNodes();
-      this.n.select = true;
 
-      nodeInput.value(this.n.text);
+        this.n.grabbed = true;
+        this.n.offsetX = this.n.x_pos - px;
+        this.n.offsetY = this.n.y_pos - py;
+        deSelectAllNodes();
+        this.n.select = true;
 
-      nodeInput.position(this.n.x_pos + 20, this.n.y_pos+20);
+        nodeInput.value(this.n.text);
+
+        nodeInput.position(this.n.x_pos + 20, this.n.y_pos+20);
     }
 
   }
@@ -289,17 +312,17 @@ function displaynodes(px, py) {
   stroke(51);
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
-  for (i=0; i<=numnodes-1; i++){
-    strokeWeight(2);
-    rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
-    if(nodes[i].n.grabbed) {
+    for (i=0; i<=numnodes-1; i++){
+      strokeWeight(2);
+      rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
+      if(nodes[i].n.grabbed) {
       // Movement
-      console.log("grabbed");
-      nodes[i].n.x_pos = px + nodes[i].n.offsetX;
-      nodes[i].n.y_pos = py + nodes[i].n.offsetY;
-      nodeInput.position(px + nodes[i].n.offsetX+50, py + nodes[i].n.offsetY+125);
-    }
-    nodes[i].writeNode();
+        console.log("grabbed");
+        nodes[i].n.x_pos = px + nodes[i].n.offsetX;
+        nodes[i].n.y_pos = py + nodes[i].n.offsetY;
+        nodeInput.position(px + nodes[i].n.offsetX+50, py + nodes[i].n.offsetY+125);
+      }
+      nodes[i].writeNode();
 
   }
 }
