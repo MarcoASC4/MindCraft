@@ -39,6 +39,7 @@ var nodeInput;
 var s;
 var nodeToDelete;
 var deleteNodeInp;
+var indexOfNode = 0;
 
 
 
@@ -58,7 +59,7 @@ var deleteNodeInp;
 
 function addNode() {
   numnodes++;
-  node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false);
+  node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false,numnodes-1);
                      // (x, y, width, height, round_amt, grabbed, resizeDC, resizeKP)
 
   // node1.inp.input(myInputEvent);
@@ -165,6 +166,7 @@ function test(){
 
 //Text box to enter a node to delete
 function deleteNodeText() {
+
   deleteNodeInp = createInput();
   deleteNodeInp.input(myInputEvent);
   deleteNodeInp.position(1200,50);
@@ -176,9 +178,10 @@ function deleteNodeText() {
 //function to delete the node
 function deleteNode() {
   nodeToDelete = deleteNodeInp.value();
-  deletedNodes.push(nodes[nodeToDelete]);
-  //delete nodes[nodeToDelete-1].n;
+  nodes.splice(nodeToDelete,1);
   numnodes -= 1;
+  //nodes.remove[0];
+  //numnodes -= 1;
 }
 
 function draw(){
@@ -198,10 +201,9 @@ function draw(){
 
 
 class Node {
-  constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP) {
-    this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
-    console.log(this.n);
-
+  constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index) {
+    this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index); //this is the JSON that we upload to Firebase
+    console.log(this.n.index);
     //this.inp = createInput();
   }
 
@@ -228,15 +230,36 @@ class Node {
 
   }
 
-//   checkDoubleClick(px, py){
-//     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
-//     console.log('yes');
-//     this.n.resizeDB = !this.n.resizeDB;
-//     }
-//   }
+   checkDoubleClick(px, py){
+     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
+     console.log('yes');
+     this.n.resizeDB = !this.n.resizeDB;
+     }
+   }
 
   checkKeyPress() {
     if (this.n.resizeDB) {
+
+      if(keyCode == DELETE){
+
+        for (i=0; i<edges.length; i++){
+          for(j=0; j<numnodes; j++) {
+            if((edges[i].source == nodes[j].n.index) || (edges[i].target == nodes[j].n.index)){
+              edges.splice(this.n.index,1);
+              console.log(edges);
+          }
+          }
+        }
+        nodes.splice(this.n.index,1);
+        numnodes -= 1;
+        
+        for(i=0; i<numnodes; i++){
+          if (nodes[i].n.index > this.n.index){
+            nodes[i].n.index -= 1;
+          }
+        }
+      }
+
       if (keyCode == RIGHT_ARROW) {
         this.n.width += 10;
         inputXVal = this.n.width - 90;
@@ -267,6 +290,7 @@ class Node {
         inputYVal = this.n.height - 40;
         //this.inp.size(inputXVal, inputYVal);
       }
+
     }
 
   }
@@ -334,7 +358,7 @@ function displaynodes(px, py) {
     {
       var sx = nodes[edges[j].source].n.x_pos + nodes[edges[j].source].n.width;
       var sy = nodes[edges[j].source].n.y_pos + 50;
-      var tx = nodes[edges[j].target].n.x_pos + nodes[edges[j].target].n.width;
+      var tx = nodes[edges[j].target].n.x_pos;
       var ty = nodes[edges[j].target].n.y_pos + 50;
       line(sx,sy,tx,ty);
     }
@@ -371,7 +395,7 @@ function createEdgeJSON(source, target)
 
 //NODE Methods
 //create a node JSON object
-function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP)
+function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index)
 {
   return {x_pos: x,
           y_pos: y,
@@ -384,7 +408,8 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
           resizeKP : resizeKP,
           offsetX : 0,
           offsetY : 0,
-          text : ''
+          text : '',
+          index : index
         };
 
 }
