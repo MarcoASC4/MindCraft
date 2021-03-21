@@ -6,21 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My MindBarf</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <script src="libraries/p5.min.js"></script>
-    <script src="libraries/p5.sound.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-database.js"></script>
+    <script src="dataProcess.js"></script>
+   
 
 </head>
 <body>
-    <script src="displayMaps.js"></script>
+
+    <div class="top">
+        <form method="get" action="#">
+            <div class="tableBar">
+                <div class="tableDivision">
+                    <input id="searchTerm" type="text" placeholder="Search Here" required>
+                </div>
+                <div class="tableDivision" id="myID">
+                    <button onclick="searchEnter()" type="submit">
+
+                        <div ></div>
+                        Submit
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <button>Delete</button>
     <h1>Showcase all of the MindMaps here</h1>
     <p>double click to edit MindMap</p>
     <p>select a mindMap and click delete</p>
-    <p>
-      <ul id="mindmapList">
-      </ul>
-    </p>
 </body>
 </html>
