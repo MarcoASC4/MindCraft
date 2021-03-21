@@ -1,4 +1,4 @@
-console.log("createMap.js is running..");
+console.log("displayMaps.js is running..");
 
 CANVAS_WIDTH =1920;
 CANVAS_HEIGHT = 1080;
@@ -24,7 +24,6 @@ var i = 0;
 let nodes = [];
 let edges = [];
 let inputs = [];
-let deletedNodes = [];
 var j;
 let px, py;
 var inputXVal = 100;
@@ -37,11 +36,6 @@ var twoNodesinp2;
 var nodeInput;
 
 var s;
-var nodeToDelete;
-var deleteNodeInp;
-var indexOfNode = 0;
-
-
 
   // Your web app's Firebase configuration
 var firebaseConfig = {
@@ -57,7 +51,7 @@ var firebaseConfig = {
   firebase.initializeApp(firebaseConfig);
   var ref = firebase.database().ref("Graphs");
   database = firebase.database();
-  //ref.on('value', gotData, errData)
+  ref.on('value', gotData, errData)
   currentMindMap = createGraphJSON("startingGraph");
   //console.log("The Starting MindMap is: ");
   //console.log(currentMindMap); 
@@ -65,39 +59,8 @@ var firebaseConfig = {
   console.log("Initial Nodes: ");
   console.log(nodes);
 
-function addNode() {
-  numnodes++;
-  node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false,numnodes-1);
-  //node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false);
-  //console.log("x: " + node1.n.x_pos);
-                     // (x, y, width, height, round_amt, grabbed, resizeDC, resizeKP)
-
-  // node1.inp.input(myInputEvent);
-  // node1.inp.position(250+(numnodes*100),325);
-  // node1.inp.size(100,40);
-  // node1.inp.style('backround-color', color(255,255,255));
-  // node1.inp.changed(textFromBox);
-  nodes.push(node1);
-  console.log("A new node has been pushed onto nodes. Here is nodes now:");
-  console.log(nodes);
-  
-  //inputs.push(node1.inp);
 
 
-  draw();
-
-
-  //for(j=0; j<=numg.nodes; j++){
-  //  node[j] = new Node(200+(j*20),200,200,100,false);
-  //  }
-
-}
-
-function saveMindMap() {
-  var g = createGraphJSON("testGraph");
-  var result = ref.push(g, dataSent);
-  console.log(result.key);
-}
 
 function dataSent(error, status) {
   console.log("dataSent(error, status): status = " + status);
@@ -113,7 +76,14 @@ function gotData(data) {
   console.log(keys);
   for (var i = 0; i< keys.length; i++) {
     var key = keys[i];
-    showMindMap();
+    var li = createElement('li', '');
+    var ahref = createA('#', key);
+    ahref.style('text-decoration: none');
+    ahref.style('padding: 2rem');
+    ahref.style('text-align: center');
+    ahref.mousePressed(showMindMap);
+    ahref.parent(li);
+    li.parent('mindmapList');
   }
 }
 
@@ -122,8 +92,8 @@ function showMindMap() {
   var key = this.html();
   console.log("key in showMindMap() : " + key);
   var ref = database.ref('Graphs/' + key);
-  //console.log("ref : ");
-  //console.log(ref);
+  console.log("ref : ");
+  console.log(ref);
   ref.on('value', oneMindMap, errData);
 
   function oneMindMap(data) {
@@ -231,26 +201,6 @@ function test(){
   console.log('Check');
 }
 
-//Text box to enter a node to delete
-function deleteNodeText() {
-
-  deleteNodeInp = createInput();
-  deleteNodeInp.input(myInputEvent);
-  deleteNodeInp.position(1200,50);
-  deleteNodeInp.size(80,40);
-  deleteNodeInp.changed(deleteNode);
-
-}
-
-//function to delete the node
-function deleteNode() {
-  nodeToDelete = deleteNodeInp.value();
-  nodes.splice(nodeToDelete,1);
-  numnodes -= 1;
-  //nodes.remove[0];
-  //numnodes -= 1;
-}
-
 function draw(){
   // This background(66, 135, 245) updates the background so that there aren't several copies of
   // the node when we drag it around
@@ -272,13 +222,10 @@ function draw(){
 
 
 class Node {
-  constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index) {
-    this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index); //this is the JSON that we upload to Firebase
-    console.log(this.n.index);
-  //constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP) {
-    //this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
-    //console.log("Node created. Its JSON object: ");
-    //console.log(this.n);
+  constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP) {
+    this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
+    console.log("Node created. Its JSON object: ");
+    console.log(this.n);
 
     //this.inp = createInput();
   }
@@ -292,41 +239,29 @@ class Node {
   checkClicked(px, py) {
     //let d = dist(px, py, this.x , this.n.y_pos);
     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
+      
+      this.n.grabbed = true;
+      this.n.offsetX = this.n.x_pos - px;
+      this.n.offsetY = this.n.y_pos - py;
+      deSelectAllNodes();
+      this.n.select = true;
 
-        this.n.grabbed = true;
-        this.n.offsetX = this.n.x_pos - px;
-        this.n.offsetY = this.n.y_pos - py;
-        deSelectAllNodes();
-        this.n.select = true;
+      nodeInput.value(this.n.text);
 
-        nodeInput.value(this.n.text);
-
-        nodeInput.position(this.n.x_pos + 20, this.n.y_pos+20);
+      nodeInput.position(this.n.x_pos + 20, this.n.y_pos+20);
     }
 
   }
 
-   checkDoubleClick(px, py){
-     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
-     console.log('yes');
-     this.n.resizeDB = !this.n.resizeDB;
-     }
-   }
+//   checkDoubleClick(px, py){
+//     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
+//     console.log('yes');
+//     this.n.resizeDB = !this.n.resizeDB;
+//     }
+//   }
 
   checkKeyPress() {
     if (this.n.resizeDB) {
-
-      if(keyCode == DELETE){
-        nodes.splice(this.n.index,1);
-        numnodes -= 1;
-        
-        for(i=0; i<numnodes; i++){
-          if (nodes[i].n.index > this.n.index){
-            nodes[i].n.index -= 1;
-          }
-        }
-      }
-
       if (keyCode == RIGHT_ARROW) {
         this.n.width += 10;
         inputXVal = this.n.width - 90;
@@ -357,7 +292,6 @@ class Node {
         inputYVal = this.n.height - 40;
         //this.inp.size(inputXVal, inputYVal);
       }
-
     }
 
   }
@@ -404,17 +338,17 @@ function displaynodes(px, py) {
   stroke(51);
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
-    for (i=0; i<=numnodes-1; i++){
-      strokeWeight(2);
-      rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
-      if(nodes[i].n.grabbed) {
+  for (i=0; i<=nodes.length-1; i++){
+    strokeWeight(2);
+    rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
+    if(nodes[i].n.grabbed) {
       // Movement
-        console.log("grabbed");
-        nodes[i].n.x_pos = px + nodes[i].n.offsetX;
-        nodes[i].n.y_pos = py + nodes[i].n.offsetY;
-        nodeInput.position(px + nodes[i].n.offsetX+50, py + nodes[i].n.offsetY+125);
-      }
-      nodes[i].writeNode();
+      //console.log("grabbed");
+      nodes[i].n.x_pos = px + nodes[i].n.offsetX;
+      nodes[i].n.y_pos = py + nodes[i].n.offsetY;
+      nodeInput.position(px + nodes[i].n.offsetX+50, py + nodes[i].n.offsetY+125);
+    }
+    nodes[i].writeNode();
 
   }
 }
@@ -426,7 +360,7 @@ function displaynodes(px, py) {
     {
       var sx = nodes[edges[j].source].n.x_pos + nodes[edges[j].source].n.width;
       var sy = nodes[edges[j].source].n.y_pos + 50;
-      var tx = nodes[edges[j].target].n.x_pos;
+      var tx = nodes[edges[j].target].n.x_pos + nodes[edges[j].target].n.width;
       var ty = nodes[edges[j].target].n.y_pos + 50;
       line(sx,sy,tx,ty);
     }
@@ -467,7 +401,7 @@ function createEdgeJSON(source, target)
 
 //NODE Methods
 //create a node JSON object
-function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index)
+function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP)
 {
   return {x_pos: x,
           y_pos: y,
@@ -480,8 +414,7 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
           resizeKP : resizeKP,
           offsetX : 0,
           offsetY : 0,
-          text : '',
-          index : index
+          text : ''
         };
 
 }

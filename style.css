@@ -57,6 +57,13 @@ span.psw {
   padding-top: 16px;
 }
 
+ul {
+  list-style-type: none;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+}
+
 /* Change styles for span and cancel button on extra small screens */
 @media screen and (max-width: 300px) {
   span.psw {
