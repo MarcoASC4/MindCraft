@@ -241,15 +241,6 @@ class Node {
     if (this.n.resizeDB) {
 
       if(keyCode == DELETE){
-
-        for (i=0; i<edges.length; i++){
-          for(j=0; j<numnodes; j++) {
-            if((edges[i].source == nodes[j].n.index) || (edges[i].target == nodes[j].n.index)){
-              edges.splice(this.n.index,1);
-              console.log(edges);
-          }
-          }
-        }
         nodes.splice(this.n.index,1);
         numnodes -= 1;
         
