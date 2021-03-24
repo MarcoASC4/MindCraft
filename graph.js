@@ -90,3 +90,5 @@ function createNodeJSON(text, x, y, round, grabbed, resizeDC, resizeKP)
 // console.log("Removing Edge");
 // delete g.graph.edges["Edge name or ID"]; //remove an edge
 // console.log(g);
+
+

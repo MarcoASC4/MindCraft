@@ -485,3 +485,31 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
         };
 
 }
+
+
+
+
+//merge nodes and edges 
+//graph1 and graph 2 are different JSON graphs
+//nodeID1 is the index of a node in graph1
+//nodeID 2 is the index node in graph2
+function mergeMaps(graph1, graph2, nodeIndex1, nodeIndex2)
+{
+  int i;
+  //combine the text of the nodes
+  if (graph1.nodes[nodeIndex1].text != graph1.nodes[nodeIndex2].text)
+  {
+    graph1.nodes[nodeIndex1].text += ' ' + graph2.nodes[nodeIndex2].text;
+  }
+
+  for(i = 0; i < graph2.edges.length; i++)
+  {
+    graph1.nodes.push(graph2.edges[i])
+  }
+
+  return graph1;
+}
+
+//using NLP find similar spellings of words using levenstein distance
+//using NLP search for synonyms in other nodes
+
