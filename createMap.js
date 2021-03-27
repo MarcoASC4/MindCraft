@@ -20,6 +20,9 @@ var valSet = 1;
 
 var i = 0;
 
+var selectedID = 0;
+var grabbedID = 0;
+
 //create Empty JSON Graph (we also need a function to import a saved json graph)
 let nodes = [];
 let edges = [];
@@ -36,7 +39,8 @@ var twoNodesinp2;
 
 var nodeInput;
 
-var s;
+var source = "";
+var target = "";
 var nodeToDelete;
 var deleteNodeInp;
 var indexOfNode = 0;
@@ -58,39 +62,47 @@ var indexOfNode = 0;
 //   var ref = firebase.database().ref("Graphs");
 //   database = firebase.database();
 //   //ref.on('value', gotData, errData)
-//   currentMindMap = createGraphJSON("startingGraph");
+  currentMindMap = createGraphJSON("startingGraph");
 //   //console.log("The Starting MindMap is: ");
 //   //console.log(currentMindMap); 
 //   nodes = currentMindMap.nodes;
 //   console.log("Initial Nodes: ");
 //   console.log(nodes);
 
-function addNode() {
-  numnodes++;
-  node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false,numnodes-1);
-  //node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false);
-  //console.log("x: " + node1.n.x_pos);
-                     // (x, y, width, height, round_amt, grabbed, resizeDC, resizeKP)
+// function addNode() {
+//   numnodes++;
+//   node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false,getNewID());
+//   //node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false);
+//   //console.log("x: " + node1.n.x_pos);
+//                      // (x, y, width, height, round_amt, grabbed, resizeDC, resizeKP)
 
-  // node1.inp.input(myInputEvent);
-  // node1.inp.position(250+(numnodes*100),325);
-  // node1.inp.size(100,40);
-  // node1.inp.style('backround-color', color(255,255,255));
-  // node1.inp.changed(textFromBox);
-  nodes.push(node1);
-  console.log("A new node has been pushed onto nodes. Here is nodes now:");
-  console.log(nodes);
+//   // node1.inp.input(myInputEvent);
+//   // node1.inp.position(250+(numnodes*100),325);
+//   // node1.inp.size(100,40);
+//   // node1.inp.style('backround-color', color(255,255,255));
+//   // node1.inp.changed(textFromBox);
+//   nodes.push(node1);
+//   console.log("A new node has been pushed onto nodes. Here is nodes now:");
+//   console.log(nodes);
   
-  //inputs.push(node1.inp);
+//   //inputs.push(node1.inp);
 
 
-  draw();
+//   draw();
 
 
-  //for(j=0; j<=numg.nodes; j++){
-  //  node[j] = new Node(200+(j*20),200,200,100,false);
-  //  }
+//   //for(j=0; j<=numg.nodes; j++){
+//   //  node[j] = new Node(200+(j*20),200,200,100,false);
+//   //  }
 
+// }
+
+function addNode(){
+  newNode = createNodeJSON(200+(currentMindMap.nodes.length*100),200,200,100,50,false, false, false, false,getNewID());
+  currentMindMap.nodes.push(newNode);
+  console.log("Node added, here's the JSON of currentMindMap")
+  console.log(currentMindMap);
+  redraw();
 }
 
 function saveMindMap() {
@@ -157,31 +169,47 @@ function errData(err) {
 }
 
 //Accepts input to connect two nodes
-function addEdge() {
+// function addEdge() {
   
-  //source input box
-  twoNodesinp1 = createInput('');
-  twoNodesinp1.input(myInputEvent);
-  twoNodesinp1.position(800,50);
-  twoNodesinp1.size(80,40);
-  twoNodesinp1.changed(connectingText1);
+//   //source input box
+//   twoNodesinp1 = createInput('');
+//   twoNodesinp1.input(myInputEvent);
+//   twoNodesinp1.position(800,50);
+//   twoNodesinp1.size(80,40);
+//   twoNodesinp1.changed(connectingText1);
 
-  //var s = twoNodesinp1.value();
+//   //var s = twoNodesinp1.value();
 
-  //target input box
-  twoNodesinp2 = createInput('');
-  twoNodesinp2.input(myInputEvent);
-  twoNodesinp2.position(900,50);
-  twoNodesinp2.size(80,40);
-  twoNodesinp2.changed(connectingText2);
+//   //target input box
+//   twoNodesinp2 = createInput('');
+//   twoNodesinp2.input(myInputEvent);
+//   twoNodesinp2.position(900,50);
+//   twoNodesinp2.size(80,40);
+//   twoNodesinp2.changed(connectingText2);
 
-  //var t = twoNodesinp2.value();
+//   //var t = twoNodesinp2.value();
 
-  //make JSON and store to edges list
-  //var edge = createEdgeJSON(s,t);
-  //edges.push(edge);
+//   //make JSON and store to edges list
+//   //var edge = createEdgeJSON(s,t);
+//   //edges.push(edge);
 
 
+// }
+
+function addEdge(){
+
+  source = selectedID;
+  target = selectedID;
+  while (mousePressed() && source == target)
+      target = selectedID;
+      console.log("in while loop");
+
+  
+  currentMindMap.edges.push(createEdgeJSON(source, target));
+  source = "";
+  target = "";
+
+  console.log(currentMindMap);
 }
 
 //First connecting node
@@ -195,7 +223,7 @@ function connectingText2() {
   var t = twoNodesinp2.value();
   var edge = createEdgeJSON(s,t);
   edges.push(edge);
-  draw();
+  redraw();
 }
 
 function setup() {
@@ -220,6 +248,8 @@ function textFromBox() {
       
     }
   }
+
+
 }
 
 function myInputEvent() {
@@ -232,24 +262,26 @@ function test(){
   console.log('Check');
 }
 
-//Text box to enter a node to delete
-function deleteNodeText() {
+// //Text box to enter a node to delete
+// function deleteNodeText() {
 
-  deleteNodeInp = createInput();
-  deleteNodeInp.input(myInputEvent);
-  deleteNodeInp.position(1200,50);
-  deleteNodeInp.size(80,40);
-  deleteNodeInp.changed(deleteNode);
+//   deleteNodeInp = createInput();
+//   deleteNodeInp.input(myInputEvent);
+//   deleteNodeInp.position(1200,50);
+//   deleteNodeInp.size(80,40);
+//   deleteNodeInp.changed(deleteNode);
 
-}
+// }
 
 //function to delete the node
 function deleteNode() {
-  nodeToDelete = deleteNodeInp.value();
-  nodes.splice(nodeToDelete,1);
-  numnodes -= 1;
-  //nodes.remove[0];
+  //nodeToDelete = deleteNodeInp.value();
+  currentMindMaps = currentMindMaps.nodes.splice(getIndexFromID(selectedID) ,1);
   //numnodes -= 1;
+
+  //also delete edges
+  //nodeToDelete is the index or the ID of the node to delete
+  edges = edges.filter(e => !(e.source === nodeToDelete || e.target === nodeToDelete));
 }
 
 function draw(){
@@ -267,170 +299,323 @@ function draw(){
   //console.log("Current MindMap: ");
   //console.log(currentMindMap);
   //console.log(currentMindMap.nodes);
+}
 
+function getIndexFromID(id){
+  return currentMindMap.nodes.findIndex(n => n.index === id);
+}
 
+//id assignment for nodes
+function getNewID(){
+  do {
+    id = currentMindMap.label.concat(String(Math.floor(1000 + Math.random() * 9000)));
+  } while (currentMindMap.nodes.some(n => n.index === id));
+  
+  return id;
+}
+
+function writeNode(id){
+  textSize(24);
+  strokeWeight(0);
+  text(currentMindMap.nodes[getIndexFromID(id)].text, currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width/2, currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height/1.8);
+}
+
+function checkClicked(px, py, id){
+  //let d = dist(px, py, this.x , this.n.y_pos);
+  if ((px > currentMindMap.nodes[getIndexFromID(id)].x_pos && px < (currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width)) && ((py > currentMindMap.nodes[getIndexFromID(id)].y_pos) && py < (currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height))) {
+
+      currentMindMap.nodes[getIndexFromID(id)].grabbed = true;
+      grabbedID = id;
+      currentMindMap.nodes[getIndexFromID(id)].offsetX = currentMindMap.nodes[getIndexFromID(id)].x_pos - px;
+      currentMindMap.nodes[getIndexFromID(id)].offsetY = currentMindMap.nodes[getIndexFromID(id)].y_pos - py;
+      deSelectAllNodes();
+      currentMindMap.nodes[getIndexFromID(id)].select = true;
+      selectedID = id;
+
+      //update node input field location and clear ""
+      currentMindMap.nodes[getIndexFromID(selectedID)].text = nodeInput.value();
+      nodeInput.value(currentMindMap.nodes[getIndexFromID(id)].text);
+      nodeInput.position(currentMindMap.nodes[getIndexFromID(id)].x_pos + 20, currentMindMap.nodes[getIndexFromID(id)].y_pos+20);
+  }
+}
+
+function checkDoubleClick(px, py, id){
+  if ((px > currentMindMap.nodes[getIndexFromID(id)].x_pos && px < (currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width)) && ((py > currentMindMap.nodes[getIndexFromID(id)].y_pos) && py < (currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height))) {
+  console.log('yes');
+  currentMindMap.nodes[getIndexFromID(id)].resizeDC = !currentMindMap.nodes[getIndexFromID(id)].resizeDC;
+  }
 }
 
 
-class Node {
-  constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index) {
-    this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index); //this is the JSON that we upload to Firebase
-    console.log(this.n.index);
-  //constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP) {
-    //this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
-    //console.log("Node created. Its JSON object: ");
-    //console.log(this.n);
+function checkKeyPress(id) {
+  if (currentMindMap.nodes[getIndexFromID(id)].resizeDC) {
+    if (keyCode == CONTROL){
+      ids.push(currentMindMap.nodes[getIndexFromID(id)]);
+      console.log(ids);
 
-    //this.inp = createInput();
-  }
-
-  writeNode(){
-    textSize(24);
-    strokeWeight(0);
-    text(this.n.text, this.n.x_pos + this.n.width/2, this.n.y_pos + this.n.height/1.8);
-  }
-
-  checkClicked(px, py) {
-    //let d = dist(px, py, this.x , this.n.y_pos);
-    if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
-
-        this.n.grabbed = true;
-        this.n.offsetX = this.n.x_pos - px;
-        this.n.offsetY = this.n.y_pos - py;
-        deSelectAllNodes();
-        this.n.select = true;
-
-        nodeInput.value(this.n.text);
-
-        nodeInput.position(this.n.x_pos + 20, this.n.y_pos+20);
     }
 
-  }
+    if(keyCode == DELETE){
+      delete currentMindMap.nodes[getIndexFromID(id)];
+    }
 
-   checkDoubleClick(px, py){
-     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
-     console.log('yes');
-     this.n.resizeDB = !this.n.resizeDB;
-     }
-   }
-
-  checkKeyPress() {
-    if (this.n.resizeDB) {
-
-      if(keyCode == DELETE){
-        nodes.splice(this.n.index,1);
-        numnodes -= 1;
+    if (keyCode == RIGHT_ARROW) {
+      currentMindMap.nodes[getIndexFromID(id)].width += 10;
+      inputXVal = currentMindMap.nodes[getIndexFromID(id)].width - 90;
+      //this.inp.size(inputXVal, inputYVal)
+    }
+    else if (keyCode == LEFT_ARROW) {
+      if (currentMindMap.nodes[getIndexFromID(id)].width < 200){
         
-        for(i=0; i<numnodes; i++){
-          if (nodes[i].n.index > this.n.index){
-            nodes[i].n.index -= 1;
-          }
-        }
       }
+      else{
+        currentMindMap.nodes[getIndexFromID(id)].width -= 10;
+      }
+      inputXVal = currentMindMap.nodes[getIndexFromID(id)].width - 90;
+      //this.inp.size(inputXVal, inputYVal)
+    }
 
-      if (keyCode == RIGHT_ARROW) {
-        this.n.width += 10;
-        inputXVal = this.n.width - 90;
-        //this.inp.size(inputXVal, inputYVal)
-      }
-      else if (keyCode == LEFT_ARROW) {
-        if (this.n.width < 200){
-          
-        }
-        else{
-          this.n.width -= 10;
-        }
-        inputXVal = this.n.width - 90;
-        //this.inp.size(inputXVal, inputYVal)
-      }
-      else if (keyCode == DOWN_ARROW) {
-        this.n.height += 10;
-        inputYVal = this.n.height - 40;
-        //this.inp.size(inputXVal, inputYVal);
-      }
-      else if (keyCode == UP_ARROW) {
-        if(this.n.height < 100){
+    else if (keyCode == DOWN_ARROW) {
+      currentMindMap.nodes[getIndexFromID(id)].height += 10;
+      inputYVal = currentMindMap.nodes[getIndexFromID(id)].height - 40;
+      //this.inp.size(inputXVal, inputYVal);
+    }
+    else if (keyCode == UP_ARROW) {
+      if(currentMindMap.nodes[getIndexFromID(id)].height < 100){
 
-        }
-        else{
-          this.n.height -= 10;
-        }
-        inputYVal = this.n.height - 40;
-        //this.inp.size(inputXVal, inputYVal);
       }
-
+      else{
+        currentMindMap.nodes[getIndexFromID(id)].height -= 10;
+      }
+      inputYVal = currentMindMap.nodes[getIndexFromID(id)].height - 40;
+      //this.inp.size(inputXVal, inputYVal);
     }
 
   }
+
 }
 
-var k;
+// class Node {
+//   constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index) {
+//     this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index); //this is the JSON that we upload to Firebase
+//     console.log(this.n.index);
+//   //constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP) {
+//     //this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
+//     //console.log("Node created. Its JSON object: ");
+//     //console.log(this.n);
+
+//     //this.inp = createInput();
+//   }
+
+//   writeNode(){
+//     textSize(24);
+//     strokeWeight(0);
+//     text(this.n.text, this.n.x_pos + this.n.width/2, this.n.y_pos + this.n.height/1.8);
+//   }
+
+//   checkClicked(px, py) {
+//     //let d = dist(px, py, this.x , this.n.y_pos);
+//     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
+
+//         this.n.grabbed = true;
+//         this.n.offsetX = this.n.x_pos - px;
+//         this.n.offsetY = this.n.y_pos - py;
+//         deSelectAllNodes();
+//         this.n.select = true;
+
+//         nodeInput.value(this.n.text);
+
+//         nodeInput.position(this.n.x_pos + 20, this.n.y_pos+20);
+//     }
+
+//   }
+
+//    checkDoubleClick(px, py){
+//      if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
+//      console.log('yes');
+//      this.n.resizeDC = !this.n.resizeDC;
+//      }
+//    }
+
+//   checkKeyPress() {
+//     if (this.n.resizeDC) {
+
+//       if(keyCode == DELETE){
+//         nodes.splice(this.n.index,1);
+//         numnodes -= 1;
+        
+//         for(i=0; i<numnodes; i++){
+//           if (nodes[i].n.index > this.n.index){
+//             nodes[i].n.index -= 1;
+//           }
+//         }
+//       }
+
+//       if (keyCode == RIGHT_ARROW) {
+//         this.n.width += 10;
+//         inputXVal = this.n.width - 90;
+//         //this.inp.size(inputXVal, inputYVal)
+//       }
+//       else if (keyCode == LEFT_ARROW) {
+//         if (this.n.width < 200){
+          
+//         }
+//         else{
+//           this.n.width -= 10;
+//         }
+//         inputXVal = this.n.width - 90;
+//         //this.inp.size(inputXVal, inputYVal)
+//       }
+//       else if (keyCode == DOWN_ARROW) {
+//         this.n.height += 10;
+//         inputYVal = this.n.height - 40;
+//         //this.inp.size(inputXVal, inputYVal);
+//       }
+//       else if (keyCode == UP_ARROW) {
+//         if(this.n.height < 100){
+
+//         }
+//         else{
+//           this.n.height -= 10;
+//         }
+//         inputYVal = this.n.height - 40;
+//         //this.inp.size(inputXVal, inputYVal);
+//       }
+
+//     }
+
+//   }
+// }
+
+// var k;
+
+// function deSelectAllNodes()
+// {
+//   for (k=0; k<nodes.length; k++) {
+//     nodes[k].n.select = false;
+//   }
+// }
 
 function deSelectAllNodes()
 {
-  for (k=0; k<nodes.length; k++) {
-    nodes[k].n.select = false;
+  for (n of currentMindMap.nodes) {
+    n.select = false;
   }
 }
+
+// function mousePressed(){
+//   for (k=0; k<nodes.length; k++) {
+//     nodes[k].checkClicked(mouseX, mouseY);
+//   }
+// }
 
 function mousePressed(){
-  for (k=0; k<nodes.length; k++) {
-    nodes[k].checkClicked(mouseX, mouseY);
+  for (n of currentMindMap.nodes) {
+    checkClicked(mouseX, mouseY, n.index);
   }
 }
+
+// function mouseReleased(){
+//   for (k=0; k<nodes.length; k++){
+//     nodes[k].n.grabbed = false;
+//   }
+// }
 
 function mouseReleased(){
-  for (k=0; k<nodes.length; k++){
-    nodes[k].n.grabbed = false;
+  for (n of currentMindMap.nodes) {
+    n.grabbed = false;
   }
 }
+
+// function doubleClicked(){
+//   for (k=0; k<nodes.length; k++){
+//     nodes[k].checkDoubleClick(mouseX, mouseY);\
+//   }
+// }
 
 function doubleClicked(){
-  for (k=0; k<nodes.length; k++){
-    nodes[k].checkDoubleClick(mouseX, mouseY);
-    
+  for (n of currentMindMap.nodes) {
+    checkDoubleClick(mouseX, mouseY, n.index);
   }
 }
+
+// function keyPressed() {
+//   for (k=0; k<nodes.length; k++){
+//     nodes[k].checkKeyPress();
+//   }
+// }
 
 function keyPressed() {
-  for (k=0; k<nodes.length; k++){
-    nodes[k].checkKeyPress();
+  for (n of currentMindMap.nodes) {
+    checkKeyPress(n.index);
   }
 }
 
 
 
+// function displaynodes(px, py) {
+//   console.log("displayNodes() is being run...");
+//   stroke(51);
+//   strokeWeight(4);
+//   //scale(mouseX / 400, mouseY / 400);
+//     for (i=0; i<=numnodes-1; i++){
+//       strokeWeight(2);
+//       rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
+//       if(nodes[i].n.grabbed) {
+//       // Movement
+//         console.log("grabbed");
+//         nodes[i].n.x_pos = px + nodes[i].n.offsetX;
+//         nodes[i].n.y_pos = py + nodes[i].n.offsetY;
+//         nodeInput.position(px + nodes[i].n.offsetX+50, py + nodes[i].n.offsetY+125);
+//       }
+//       nodes[i].writeNode();
+
+//   }
+// }
+
 function displaynodes(px, py) {
-  console.log("displayNodes() is being run...");
+  console.log("displayNodes2() is being run...");
   stroke(51);
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
-    for (i=0; i<=numnodes-1; i++){
+    for (n of currentMindMap.nodes){
       strokeWeight(2);
-      rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
-      if(nodes[i].n.grabbed) {
+      rect(n.x_pos, n.y_pos, n.width, n.height, n.round_amt,n.round_amt,n.round_amt,n.round_amt, n.grabbed);
+      if(n.grabbed) {
       // Movement
         console.log("grabbed");
-        nodes[i].n.x_pos = px + nodes[i].n.offsetX;
-        nodes[i].n.y_pos = py + nodes[i].n.offsetY;
-        nodeInput.position(px + nodes[i].n.offsetX+50, py + nodes[i].n.offsetY+125);
+        n.x_pos = px + n.offsetX;
+        n.y_pos = py + n.offsetY;
+        nodeInput.position(px + n.offsetX+50, py + n.offsetY+125);
       }
-      nodes[i].writeNode();
+      writeNode(n.index);
 
   }
 }
 
-  function drawEdges(){
-  if (edges.length > 0){
-    strokeWeight(4);
-    for (j=0; j<edges.length; j++)
-    {
-      var sx = nodes[edges[j].source].n.x_pos + nodes[edges[j].source].n.width;
-      var sy = nodes[edges[j].source].n.y_pos + 50;
-      var tx = nodes[edges[j].target].n.x_pos;
-      var ty = nodes[edges[j].target].n.y_pos + 50;
-      line(sx,sy,tx,ty);
-    }
+//   function drawEdges(){
+//   if (edges.length > 0){
+//     strokeWeight(4);
+//     for (j=0; j<edges.length; j++)
+//     {
+//       var sx = nodes[edges[j].source].n.x_pos + nodes[edges[j].source].n.width;
+//       var sy = nodes[edges[j].source].n.y_pos + 50;
+//       var tx = nodes[edges[j].target].n.x_pos;
+//       var ty = nodes[edges[j].target].n.y_pos + 50;
+//       line(sx,sy,tx,ty);
+//     }
+//   }
+// }
+
+function drawEdges(){
+  strokeWeight(4);
+  for (e of currentMindMap.edges)
+  {
+    var sx = currentMindMap.nodes[getIndexFromID(e.source)].x_pos + currentMindMap.nodes[getIndexFromID(e.source)].width;
+    var sy = currentMindMap.nodes[getIndexFromID(e.source)].y_pos + 50;
+    var tx = currentMindMap.nodes[getIndexFromID(e.target)].x_pos;
+    var ty = currentMindMap.nodes[getIndexFromID(e.target)].y_pos + 50;
+    line(sx,sy,tx,ty);
   }
 }
 
