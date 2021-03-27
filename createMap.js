@@ -491,21 +491,42 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
 
 //merge nodes and edges 
 //graph1 and graph 2 are different JSON graphs
-//nodeID1 is the index of a node in graph1
-//nodeID 2 is the index node in graph2
-function mergeMaps(graph1, graph2, nodeIndex1, nodeIndex2)
+//nodeReplaceList is a list of JS objects with nodeIndex1, and nodeIndex2 attributes where nodeIndex1 is the 
+//     merged node in graph1 and nodeIndex2 is the merge node in graph2
+function mergeMaps(graph1, graph2, nodeReplaceList)
 {
-  int i;
-  //combine the text of the nodes
-  if (graph1.nodes[nodeIndex1].text != graph1.nodes[nodeIndex2].text)
-  {
-    graph1.nodes[nodeIndex1].text += ' ' + graph2.nodes[nodeIndex2].text;
-  }
+  nodeReplace.forEach (function (item, index){
+    //combine the text of the nodes
+    if (graph1.nodes[item.nodeIndex1].text != graph1.nodes[item.nodeIndex2].text)
+    {
+      graph1.nodes[item.nodeIndex1].text += "/" + graph2.nodes[item.nodeIndex2].text;
+    }
 
-  for(i = 0; i < graph2.edges.length; i++)
-  {
-    graph1.nodes.push(graph2.edges[i])
-  }
+    //add all edges from graph1 to graph2
+    graph1.nodes.push(...graph2.nodes)
+    
+    // for(i = 0; i < graph2.edges.length; i++)
+    // {
+    //   graph1.nodes.push(graph2.edges[i])
+    // }
+
+    //! the new edges now in graph1 from and to graph2.nodes[nodeIndex2] need to point to graph1.nodes[nodeIndex1]
+    for(i = 0; i < graph1.edges.length; i++)
+    {
+      //find and replace old node in the SOURCE
+      if (graph1.edges[i].source == graph2.nodes[item.nodeIndex2].index)
+      {
+        graph1.edges[i].source = graph1.nodes[item.nodeIndex1].index;
+      }
+      //find and replace the old node in TARGET
+      if (graph1.edges[i].target == graph2.nodes[item.nodeIndex2].index)
+      {
+        graph1.edges[i].target = graph1.nodes[item.nodeIndex1].index;
+      }
+    }
+  });
+  
+    
 
   return graph1;
 }
