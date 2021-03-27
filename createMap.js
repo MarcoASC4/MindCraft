@@ -43,27 +43,27 @@ var indexOfNode = 0;
 
 
 
-  // Your web app's Firebase configuration
-var firebaseConfig = {
-  apiKey: "AIzaSyCJuTDil5mz0rsHrmBTlKSh0nPstEbwd3s",
-  authDomain: "mind-barf-e6745.firebaseapp.com",
-  databaseURL: "https://mind-barf-e6745-default-rtdb.firebaseio.com",
-  projectId: "mind-barf-e6745",
-  storageBucket: "mind-barf-e6745.appspot.com",
-  messagingSenderId: "339425742596",
-  appId: "1:339425742596:web:953a7a9ea744d52197ca51"
-};
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  var ref = firebase.database().ref("Graphs");
-  database = firebase.database();
-  //ref.on('value', gotData, errData)
-  currentMindMap = createGraphJSON("startingGraph");
-  //console.log("The Starting MindMap is: ");
-  //console.log(currentMindMap); 
-  nodes = currentMindMap.nodes;
-  console.log("Initial Nodes: ");
-  console.log(nodes);
+//   // Your web app's Firebase configuration
+// var firebaseConfig = {
+//   apiKey: "AIzaSyCJuTDil5mz0rsHrmBTlKSh0nPstEbwd3s",
+//   authDomain: "mind-barf-e6745.firebaseapp.com",
+//   databaseURL: "https://mind-barf-e6745-default-rtdb.firebaseio.com",
+//   projectId: "mind-barf-e6745",
+//   storageBucket: "mind-barf-e6745.appspot.com",
+//   messagingSenderId: "339425742596",
+//   appId: "1:339425742596:web:953a7a9ea744d52197ca51"
+// };
+//   // Initialize Firebase
+//   firebase.initializeApp(firebaseConfig);
+//   var ref = firebase.database().ref("Graphs");
+//   database = firebase.database();
+//   //ref.on('value', gotData, errData)
+//   currentMindMap = createGraphJSON("startingGraph");
+//   //console.log("The Starting MindMap is: ");
+//   //console.log(currentMindMap); 
+//   nodes = currentMindMap.nodes;
+//   console.log("Initial Nodes: ");
+//   console.log(nodes);
 
 function addNode() {
   numnodes++;
@@ -195,7 +195,7 @@ function connectingText2() {
   var t = twoNodesinp2.value();
   var edge = createEdgeJSON(s,t);
   edges.push(edge);
-  displaynodes();
+  draw();
 }
 
 function setup() {
@@ -225,6 +225,7 @@ function textFromBox() {
 function myInputEvent() {
   // Prints whatever is being typed into inp
     console.log('you are typing: ', this.value());
+    redraw();
   }
 
 function test(){
@@ -495,20 +496,18 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
 //     merged node in graph1 and nodeIndex2 is the merge node in graph2
 function mergeMaps(graph1, graph2, nodeReplaceList)
 {
-  nodeReplace.forEach (function (item, index){
-    //combine the text of the nodes
-    if (graph1.nodes[item.nodeIndex1].text != graph1.nodes[item.nodeIndex2].text)
+
+   //add all graph2 nodes EXCEPT those in nodeReplaceList.nodeIndex2
+   graph1.nodes.push(...graph2.nodes.filter(n => !nodeReplaceList.some(item => item.nodeIndex2 === n.index)))
+
+  //add all edges from graph2 to graph1
+  graph1.edges.push(...graph2.edges)
+
+  for (item of nodeReplaceList) {
+    if (graph1.nodes[item.nodeIndex1].text != graph2.nodes[item.nodeIndex2].text)
     {
       graph1.nodes[item.nodeIndex1].text += "/" + graph2.nodes[item.nodeIndex2].text;
     }
-
-    //add all edges from graph1 to graph2
-    graph1.nodes.push(...graph2.nodes)
-    
-    // for(i = 0; i < graph2.edges.length; i++)
-    // {
-    //   graph1.nodes.push(graph2.edges[i])
-    // }
 
     //! the new edges now in graph1 from and to graph2.nodes[nodeIndex2] need to point to graph1.nodes[nodeIndex1]
     for(i = 0; i < graph1.edges.length; i++)
@@ -524,12 +523,34 @@ function mergeMaps(graph1, graph2, nodeReplaceList)
         graph1.edges[i].target = graph1.nodes[item.nodeIndex1].index;
       }
     }
-  });
+  }
   
     
 
   return graph1;
 }
+
+
+var graph1 = createGraphJSON("g1");
+var graph2 = createGraphJSON("g2");
+
+graph1.nodes.push(createNodeJSON(0, 0, 0, 0, 0, 0, 0, 0, 0,0));
+graph1.nodes.push(createNodeJSON(0, 0, 0, 0, 0, 0, 0, 0, 0,1));
+graph1.nodes[0].text = "happy";
+graph1.nodes[1].text = "sad";
+graph1.edges.push(createEdgeJSON(0,1));
+console.log("BEFORE");
+console.log(graph1);
+
+graph2.nodes.push(createNodeJSON(0, 0, 0, 0, 0, 0, 0, 0, 0,0));
+graph2.nodes[0].text = "testhappy";
+graph2.nodes.push(createNodeJSON(0, 0, 0, 0, 0, 0, 0, 0, 0,1));
+graph2.nodes[1].text = "sadness";
+graph2.edges.push(createEdgeJSON(0,1));
+
+console.log("AFTER");
+console.log(mergeMaps(graph1, graph2, [{nodeIndex1 : 0, nodeIndex2 : 0}]));
+
 
 //using NLP find similar spellings of words using levenstein distance
 //using NLP search for synonyms in other nodes
