@@ -22,6 +22,7 @@ var i = 0;
 
 var selectedID = 0;
 var grabbedID = 0;
+var connectCounter = 0;
 
 //create Empty JSON Graph (we also need a function to import a saved json graph)
 let nodes = [];
@@ -100,6 +101,7 @@ var indexOfNode = 0;
 function addNode(){
   newNode = createNodeJSON(200+(currentMindMap.nodes.length*100),200,200,100,50,false, false, false, false,getNewID());
   currentMindMap.nodes.push(newNode);
+  selectedID = newNode.index;
   console.log("Node added, here's the JSON of currentMindMap")
   console.log(currentMindMap);
   redraw();
@@ -197,19 +199,9 @@ function errData(err) {
 // }
 
 function addEdge(){
-
-  source = selectedID;
-  target = selectedID;
-  while (mousePressed() && source == target)
-      target = selectedID;
-      console.log("in while loop");
-
-  
-  currentMindMap.edges.push(createEdgeJSON(source, target));
-  source = "";
-  target = "";
-
-  console.log(currentMindMap);
+  if(currentMindMap.nodes.length >= 2){ 
+  connectCounter = 1; // this means the next 2 clicks will link those nodes
+  }
 }
 
 //First connecting node
@@ -276,18 +268,18 @@ function test(){
 //function to delete the node
 function deleteNode() {
   //nodeToDelete = deleteNodeInp.value();
-  currentMindMaps = currentMindMaps.nodes.splice(getIndexFromID(selectedID) ,1);
+  currentMindMap.nodes.splice(getIndexFromID(selectedID) ,1);
   //numnodes -= 1;
 
   //also delete edges
   //nodeToDelete is the index or the ID of the node to delete
-  edges = edges.filter(e => !(e.source === nodeToDelete || e.target === nodeToDelete));
+  currentMindMap.edges = currentMindMap.edges.filter(e => (e.source === nodeToDelete || e.target === nodeToDelete));
 }
 
 function draw(){
   // This background(66, 135, 245) updates the background so that there aren't several copies of
   // the node when we drag it around
-  background(66, 135, 245);
+  background(255, 255, 255);
   // Draws our node
   //ellipse(node.x, node.y, node.diameter, node.height);
   textAlign(CENTER);
@@ -301,6 +293,7 @@ function draw(){
   //console.log(currentMindMap.nodes);
 }
 
+//gets the index of the node for reference with the list
 function getIndexFromID(id){
   return currentMindMap.nodes.findIndex(n => n.index === id);
 }
@@ -314,6 +307,7 @@ function getNewID(){
   return id;
 }
 
+//writes the text of the node taken from the input field
 function writeNode(id){
   textSize(24);
   strokeWeight(0);
@@ -322,18 +316,23 @@ function writeNode(id){
 
 function checkClicked(px, py, id){
   //let d = dist(px, py, this.x , this.n.y_pos);
+  console.log(getIndexFromID(id));
   if ((px > currentMindMap.nodes[getIndexFromID(id)].x_pos && px < (currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width)) && ((py > currentMindMap.nodes[getIndexFromID(id)].y_pos) && py < (currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height))) {
-
       currentMindMap.nodes[getIndexFromID(id)].grabbed = true;
       grabbedID = id;
       currentMindMap.nodes[getIndexFromID(id)].offsetX = currentMindMap.nodes[getIndexFromID(id)].x_pos - px;
       currentMindMap.nodes[getIndexFromID(id)].offsetY = currentMindMap.nodes[getIndexFromID(id)].y_pos - py;
       deSelectAllNodes();
       currentMindMap.nodes[getIndexFromID(id)].select = true;
-      selectedID = id;
+      
+      //set node text when you click away
+      if(currentMindMap.nodes.some(item => item.index === selectedID)){  //check if the node was deleted
+        currentMindMap.nodes[getIndexFromID(selectedID)].text = nodeInput.value();
+      }
+
+      selectedID = id; //update the newly selected node
 
       //update node input field location and clear ""
-      currentMindMap.nodes[getIndexFromID(selectedID)].text = nodeInput.value();
       nodeInput.value(currentMindMap.nodes[getIndexFromID(id)].text);
       nodeInput.position(currentMindMap.nodes[getIndexFromID(id)].x_pos + 20, currentMindMap.nodes[getIndexFromID(id)].y_pos+20);
   }
@@ -341,7 +340,7 @@ function checkClicked(px, py, id){
 
 function checkDoubleClick(px, py, id){
   if ((px > currentMindMap.nodes[getIndexFromID(id)].x_pos && px < (currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width)) && ((py > currentMindMap.nodes[getIndexFromID(id)].y_pos) && py < (currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height))) {
-  console.log('yes');
+  console.log('double click');
   currentMindMap.nodes[getIndexFromID(id)].resizeDC = !currentMindMap.nodes[getIndexFromID(id)].resizeDC;
   }
 }
@@ -349,12 +348,6 @@ function checkDoubleClick(px, py, id){
 
 function checkKeyPress(id) {
   if (currentMindMap.nodes[getIndexFromID(id)].resizeDC) {
-    if (keyCode == CONTROL){
-      ids.push(currentMindMap.nodes[getIndexFromID(id)]);
-      console.log(ids);
-
-    }
-
     if(keyCode == DELETE){
       delete currentMindMap.nodes[getIndexFromID(id)];
     }
@@ -513,6 +506,21 @@ function mousePressed(){
   for (n of currentMindMap.nodes) {
     checkClicked(mouseX, mouseY, n.index);
   }
+
+  if(connectCounter == 1){
+    source = selectedID;
+    console.log("connectCounter is 1");
+    connectCounter = connectCounter + 1;
+  }
+  if(connectCounter == 2){
+    if(source != selectedID){
+      target = selectedID;
+      currentMindMap.edges.push(createEdgeJSON(source, target));
+      console.log("connectCounter is 2");
+      connectCounter = 0;
+    }
+  }
+  
 }
 
 // function mouseReleased(){
@@ -574,7 +582,7 @@ function keyPressed() {
 // }
 
 function displaynodes(px, py) {
-  console.log("displayNodes2() is being run...");
+  //console.log("displayNodes2() is being run...");
   stroke(51);
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
@@ -583,7 +591,7 @@ function displaynodes(px, py) {
       rect(n.x_pos, n.y_pos, n.width, n.height, n.round_amt,n.round_amt,n.round_amt,n.round_amt, n.grabbed);
       if(n.grabbed) {
       // Movement
-        console.log("grabbed");
+        //console.log("grabbed");
         n.x_pos = px + n.offsetX;
         n.y_pos = py + n.offsetY;
         nodeInput.position(px + n.offsetX+50, py + n.offsetY+125);
@@ -714,28 +722,6 @@ function mergeMaps(graph1, graph2, nodeReplaceList)
 
   return graph1;
 }
-
-
-var graph1 = createGraphJSON("g1");
-var graph2 = createGraphJSON("g2");
-
-graph1.nodes.push(createNodeJSON(0, 0, 0, 0, 0, 0, 0, 0, 0,0));
-graph1.nodes.push(createNodeJSON(0, 0, 0, 0, 0, 0, 0, 0, 0,1));
-graph1.nodes[0].text = "happy";
-graph1.nodes[1].text = "sad";
-graph1.edges.push(createEdgeJSON(0,1));
-console.log("BEFORE");
-console.log(graph1);
-
-graph2.nodes.push(createNodeJSON(0, 0, 0, 0, 0, 0, 0, 0, 0,0));
-graph2.nodes[0].text = "testhappy";
-graph2.nodes.push(createNodeJSON(0, 0, 0, 0, 0, 0, 0, 0, 0,1));
-graph2.nodes[1].text = "sadness";
-graph2.edges.push(createEdgeJSON(0,1));
-
-console.log("AFTER");
-console.log(mergeMaps(graph1, graph2, [{nodeIndex1 : 0, nodeIndex2 : 0}]));
-
 
 //using NLP find similar spellings of words using levenstein distance
 //using NLP search for synonyms in other nodes
