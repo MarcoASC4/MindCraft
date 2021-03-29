@@ -1,17 +1,5 @@
-console.log("createMap.js is running..");
-
 CANVAS_WIDTH =1920;
 CANVAS_HEIGHT = 1080;
-
-// Node Class
-// grabbed => indicates if the node is being 'grabbed' by the mouse
-//var node = {
-//  x: 200,
-//  y: 200,
-//  diameter: 200,
-//  height: 100,
-//  grabbed: false
-//}
 
 var inp;
 var numnodes = 0;
@@ -40,6 +28,15 @@ var s;
 var nodeToDelete;
 var deleteNodeInp;
 var indexOfNode = 0;
+// The current_key is the key associated to the current mindmap being displayed
+// which is saved in the database. (Keys are a string that usually start with "M....")
+var current_key;
+// The keys of the mindmaps saved in the database
+var keys = [];
+
+if (localStorage.getItem("key") != null) current_key = localStorage.getItem("key");
+//else window.location = "http://127.0.0.1:5501/allMindMaps.html";
+console.log("current_key: " + current_key);
 
 
 
@@ -57,10 +54,13 @@ var firebaseConfig = {
   firebase.initializeApp(firebaseConfig);
   var ref = firebase.database().ref("Graphs");
   database = firebase.database();
-  //ref.on('value', gotData, errData)
+  ref.on('value', gotData, errData);
   currentMindMap = createGraphJSON("startingGraph");
-  //console.log("The Starting MindMap is: ");
-  //console.log(currentMindMap); 
+    //console.log("The Starting MindMap is: ");
+    //console.log(currentMindMap); 
+  if (window.location == "http://127.0.0.1:5500/MindCraft/test.html") showMindMap();
+
+  //showMindMap();
   nodes = currentMindMap.nodes;
   console.log("Initial Nodes: ");
   console.log(nodes);
@@ -106,24 +106,56 @@ function dataSent(error, status) {
 function gotData(data) {
   console.log("Running gotData(data)...");
   var mindMaps = data.val();
-  //console.log("mindMaps length: ");
-  //console.log(mindMaps);
-  var keys = Object.keys(mindMaps);
+  if (mindMaps == null) 
+  {
+    keys = []
+  }
+  else
+  {
+    keys = Object.keys(mindMaps);
+  }
   console.log("Keys:");
   console.log(keys);
   for (var i = 0; i< keys.length; i++) {
+    // Creating each mindmap in the html from the database that we can click on and open to edit
     var key = keys[i];
-    showMindMap();
+    var li = createElement('li', ''); 
+    var ahref = createA('#', key);
+    ahref.style('text-decoration: none');
+    ahref.style('padding: 2rem');
+    ahref.style('text-align: center');
+    ahref.mousePressed(showMindMap);
+    console.log("window.location : ");
+    console.log(window.location.href);
+    if (window.location.href != "http://127.0.0.1:5500/MindCraft/test.html") 
+    {
+      ahref.parent(li);
+      li.parent('mindmapList');
+      }
+    }
   }
-}
 
 function showMindMap() {
   console.log("Running showMindMap...");
-  var key = this.html();
+  //min = this.html();
+  if (window.location.href != "http://127.0.0.1:5500/MindCraft/test.html")
+  {
+    console.log("NOT TEST.HTML");
+    localStorage.setItem("key", this.html());
+    console.log(localStorage.getItem("key"));
+  }
+  if (window.location != "http://127.0.0.1:5500/MindCraft/test.html") window.location = "test.html";
+
+  //}
+  //else
+ // {
+    console.log("IT IS TEST.HTML");
+    key = current_key;
+//}
   console.log("key in showMindMap() : " + key);
   var ref = database.ref('Graphs/' + key);
-  //console.log("ref : ");
-  //console.log(ref);
+  console.log("ref : ");
+  console.log(ref);
   ref.on('value', oneMindMap, errData);
 
   function oneMindMap(data) {
@@ -141,7 +173,7 @@ function showMindMap() {
     nodes = [];
     for (j = 0; j < DBnodes.length; ++j)
     {
-      currentNode = new Node(DBnodes[j].x_pos, DBnodes[j].y_pos, DBnodes[j].width, DBnodes[j].height, DBnodes[j].round_amt, DBnodes[j].grabbed, DBnodes[j].select, DBnodes[j].resizeDC, DBnodes[j].resizeKP);     
+      currentNode = new Node(DBnodes[j].x_pos, DBnodes[j].y_pos, DBnodes[j].width, DBnodes[j].height, DBnodes[j].round_amt, DBnodes[j].grabbed, DBnodes[j].select, DBnodes[j].resizeDC, DBnodes[j].resizeKP, DBnodes[j].index);     
       nodes.push(currentNode);
     }
     console.log("nodes has been changed to:");
@@ -149,7 +181,19 @@ function showMindMap() {
     console.log("Mindmap has been changed to: ");
     console.log(currentMindMap);
   }
+  //if (window.location != "http://127.0.0.1:5501/test.html") window.location = "test.html";
   //console.log(this.html);
+}
+
+
+// Deletes mindmap from the database
+// deleteMindMap(i) deletes the ith mindmap in the database 
+function deleteMindMap(mindMap_num) {
+  var key = keys[mindMap_num - 1];
+  var ref = database.ref('Graphs/' + key);
+  ref.remove();
+  keys.splice(mindMap_num - 1, 1);
+
 }
 
 function errData(err) {
@@ -404,7 +448,7 @@ function displaynodes(px, py) {
   stroke(51);
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
-    for (i=0; i<=numnodes-1; i++){
+    for (i=0; i<=nodes.length-1; i++){
       strokeWeight(2);
       rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
       if(nodes[i].n.grabbed) {
