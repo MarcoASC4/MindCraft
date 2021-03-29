@@ -58,15 +58,15 @@ var firebaseConfig = {
   var ref = firebase.database().ref("Graphs");
   database = firebase.database();
   ref.on('value', gotData, errData);
-  currentMindMap = createGraphJSON("startingGraph");
+  currentMindMap = createGraphJSON("testGraph");
     //console.log("The Starting MindMap is: ");
     //console.log(currentMindMap); 
-  if (window.location == "http://127.0.0.1:5500/MindCraft/test.html") showMindMap();
+  if (window.location == "http://127.0.0.1:5501/test.html") showMindMap();
 
   //showMindMap();
-  nodes = currentMindMap.nodes;
-  console.log("Initial Nodes: ");
-  console.log(nodes);
+  //nodes = currentMindMap.nodes;
+  //console.log("Initial Nodes: ");
+  //console.log(nodes);
 
   
 //   //inputs.push(node1.inp);
@@ -91,8 +91,10 @@ function addNode(){
 }
 
 function saveMindMap() {
-  var g = createGraphJSON("testGraph");
-  var result = ref.push(g, dataSent);
+  //var g = createGraphJSON("testGraph");
+  var result = ref.push(currentMindMap, dataSent);
+  console.log("currentMindMap in saveMindMap(): ");
+  console.log(currentMindMap);
   console.log(result.key);
 }
 
@@ -124,7 +126,7 @@ function gotData(data) {
     ahref.mousePressed(showMindMap);
     console.log("window.location : ");
     console.log(window.location.href);
-    if (window.location.href != "http://127.0.0.1:5500/MindCraft/test.html") 
+    if (window.location.href == "http://127.0.0.1:5501/allMindmaps.html") 
     {
       ahref.parent(li);
       li.parent('mindmapList');
@@ -134,14 +136,15 @@ function gotData(data) {
 
 function showMindMap() {
   console.log("Running showMindMap...");
+  console.log(currentMindMap);
   //min = this.html();
-  if (window.location.href != "http://127.0.0.1:5500/MindCraft/test.html")
+  if (window.location.href != "http://127.0.0.1:5501/test.html")
   {
     console.log("NOT TEST.HTML");
     localStorage.setItem("key", this.html());
     console.log(localStorage.getItem("key"));
   }
-  if (window.location != "http://127.0.0.1:5500/MindCraft/test.html") window.location = "test.html";
+  if (window.location != "http://127.0.0.1:5501/test.html") window.location = "test.html";
 
   //}
   //else
@@ -157,22 +160,32 @@ function showMindMap() {
 
   function oneMindMap(data) {
     var DBmindMap = data.val();
-    currentMindMap = DBmindMap;
-    if (!currentMindMap.nodes)
-    {
-      DBnodes = [];
+    if (DBmindMap != null) {
+      currentMindMap = DBmindMap;
+      if(currentMindMap.edges == null){
+        currentMindMaps["edges"] = [];
+      }
+      if(currentMindMap.nodes == null){
+        currentMindMaps["nodes"] = [];
+      }
     }
-    else
-    {
-      DBnodes = DBmindMap.nodes;
-    }
-    console.log(DBnodes);
-    nodes = [];
-    for (j = 0; j < DBnodes.length; ++j)
-    {
-      currentNode = new Node(DBnodes[j].x_pos, DBnodes[j].y_pos, DBnodes[j].width, DBnodes[j].height, DBnodes[j].round_amt, DBnodes[j].grabbed, DBnodes[j].select, DBnodes[j].resizeDC, DBnodes[j].resizeKP, DBnodes[j].index);     
-      nodes.push(currentNode);
-    }
+    console.log("currentMindMap = DBmindmap: ");
+    console.log(currentMindMap);
+    // if (!currentMindMap.nodes)
+    // {
+    //   DBnodes = [];
+    // }
+    // else
+    // {
+    //   DBnodes = DBmindMap.nodes;
+    // }
+    // console.log(DBnodes);
+    // nodes = [];
+    // for (j = 0; j < DBnodes.length; ++j)
+    // {
+    //   currentNode = new Node(DBnodes[j].x_pos, DBnodes[j].y_pos, DBnodes[j].width, DBnodes[j].height, DBnodes[j].round_amt, DBnodes[j].grabbed, DBnodes[j].select, DBnodes[j].resizeDC, DBnodes[j].resizeKP, DBnodes[j].index);     
+    //   nodes.push(currentNode);
+    // }
     console.log("nodes has been changed to:");
     console.log(nodes);
     console.log("Mindmap has been changed to: ");
@@ -669,7 +682,7 @@ function createGraphJSON(title)
            "edges": [] //no edges
           };
   
-  for (i = 0; i < nodes.length; i++) g.nodes.push(nodes[i].n);
+  //for (i = 0; i < nodes.length; i++) g.nodes.push(nodes[i].n);
   //for (i = 0; i < nodes.length; i++) g.edges.push(edges[i]);   
 
   return g; 
