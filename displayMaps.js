@@ -1,17 +1,5 @@
-console.log("displayMaps.js is running..");
-
 CANVAS_WIDTH =1920;
 CANVAS_HEIGHT = 1080;
-
-// Node Class
-// grabbed => indicates if the node is being 'grabbed' by the mouse
-//var node = {
-//  x: 200,
-//  y: 200,
-//  diameter: 200,
-//  height: 100,
-//  grabbed: false
-//}
 
 var inp;
 var numnodes = 0;
@@ -24,6 +12,7 @@ var i = 0;
 let nodes = [];
 let edges = [];
 let inputs = [];
+let deletedNodes = [];
 var j;
 let px, py;
 var inputXVal = 100;
@@ -51,7 +40,7 @@ var firebaseConfig = {
   firebase.initializeApp(firebaseConfig);
   var ref = firebase.database().ref("Graphs");
   database = firebase.database();
-  ref.on('value', gotData, errData)
+  ref.on('value', gotData, errData);
   currentMindMap = createGraphJSON("startingGraph");
   //console.log("The Starting MindMap is: ");
   //console.log(currentMindMap); 
@@ -59,7 +48,39 @@ var firebaseConfig = {
   console.log("Initial Nodes: ");
   console.log(nodes);
 
+  function addNode() {
+    numnodes++;
+    node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false,numnodes-1);
+    //node1 = new Node(200+(numnodes*100),200,200,100,50,false, false, false, false);
+    //console.log("x: " + node1.n.x_pos);
+                       // (x, y, width, height, round_amt, grabbed, resizeDC, resizeKP)
+  
+    // node1.inp.input(myInputEvent);
+    // node1.inp.position(250+(numnodes*100),325);
+    // node1.inp.size(100,40);
+    // node1.inp.style('backround-color', color(255,255,255));
+    // node1.inp.changed(textFromBox);
+    nodes.push(node1);
+    console.log("A new node has been pushed onto nodes. Here is nodes now:");
+    console.log(nodes);
+    
+    //inputs.push(node1.inp);
+  
+  
+    draw();
+  
+  
+    //for(j=0; j<=numg.nodes; j++){
+    //  node[j] = new Node(200+(j*20),200,200,100,false);
+    //  }
+  
+  }
 
+  function saveMindMap() {
+    var g = createGraphJSON("testGraph");
+    var result = ref.push(g, dataSent);
+    console.log(result.key);
+  }
 
 
 function dataSent(error, status) {
@@ -201,6 +222,29 @@ function test(){
   console.log('Check');
 }
 
+
+//Text box to enter a node to delete
+function deleteNodeText() {
+
+  deleteNodeInp = createInput();
+  deleteNodeInp.input(myInputEvent);
+  deleteNodeInp.position(1200,50);
+  deleteNodeInp.size(80,40);
+  deleteNodeInp.changed(deleteNode);
+
+}
+
+//function to delete the node
+function deleteNode() {
+  nodeToDelete = deleteNodeInp.value();
+  nodes.splice(nodeToDelete,1);
+  numnodes -= 1;
+  //nodes.remove[0];
+  //numnodes -= 1;
+}
+
+
+
 function draw(){
   // This background(66, 135, 245) updates the background so that there aren't several copies of
   // the node when we drag it around
@@ -253,12 +297,12 @@ class Node {
 
   }
 
-//   checkDoubleClick(px, py){
-//     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
-//     console.log('yes');
-//     this.n.resizeDB = !this.n.resizeDB;
-//     }
-//   }
+   checkDoubleClick(px, py){
+     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
+     console.log('yes');
+     this.n.resizeDB = !this.n.resizeDB;
+     }
+   }
 
   checkKeyPress() {
     if (this.n.resizeDB) {
