@@ -18,6 +18,7 @@
   "homepage": "https://github.com/randycv/MindCraft#readme",
   "dependencies": {
     "fast-levenshtein": "^3.0.0",
+    "firebase": "^8.3.1",
     "keyword-extractor": "^0.0.19",
     "natural": "^5.0.1",
     "wordnet-db": "^3.1.14"

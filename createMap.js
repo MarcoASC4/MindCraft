@@ -39,29 +39,29 @@ var current_key;
 // The keys of the mindmaps saved in the database
 var keys = [];
 
-if (localStorage.getItem("key") != null) current_key = localStorage.getItem("key");
-//else window.location = "http://127.0.0.1:5501/allMindMaps.html";
-console.log("current_key: " + current_key);
+// if (localStorage.getItem("key") != null) current_key = localStorage.getItem("key");
+// //else window.location = "http://127.0.0.1:5501/allMindMaps.html";
+// console.log("current_key: " + current_key);
 
-  // Your web app's Firebase configuration
-var firebaseConfig = {
-  apiKey: "AIzaSyCJuTDil5mz0rsHrmBTlKSh0nPstEbwd3s",
-  authDomain: "mind-barf-e6745.firebaseapp.com",
-  databaseURL: "https://mind-barf-e6745-default-rtdb.firebaseio.com",
-  projectId: "mind-barf-e6745",
-  storageBucket: "mind-barf-e6745.appspot.com",
-  messagingSenderId: "339425742596",
-  appId: "1:339425742596:web:953a7a9ea744d52197ca51"
-};
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  var ref = firebase.database().ref("Graphs");
-  database = firebase.database();
-  ref.on('value', gotData, errData);
-  currentMindMap = createGraphJSON("testGraph");
-    //console.log("The Starting MindMap is: ");
-    //console.log(currentMindMap); 
-  if (window.location == "http://127.0.0.1:5501/test.html") showMindMap();
+//   // Your web app's Firebase configuration
+// var firebaseConfig = {
+//   apiKey: "AIzaSyCJuTDil5mz0rsHrmBTlKSh0nPstEbwd3s",
+//   authDomain: "mind-barf-e6745.firebaseapp.com",
+//   databaseURL: "https://mind-barf-e6745-default-rtdb.firebaseio.com",
+//   projectId: "mind-barf-e6745",
+//   storageBucket: "mind-barf-e6745.appspot.com",
+//   messagingSenderId: "339425742596",
+//   appId: "1:339425742596:web:953a7a9ea744d52197ca51"
+// };
+//   // Initialize Firebase
+//   firebase.initializeApp(firebaseConfig);
+//   var ref = firebase.database().ref("Graphs");
+//   database = firebase.database();
+//   ref.on('value', gotData, errData);
+//   currentMindMap = createGraphJSON("testGraph");
+//     //console.log("The Starting MindMap is: ");
+//     //console.log(currentMindMap); 
+//   if (window.location == "http://127.0.0.1:5501/test.html") showMindMap();
 
   //showMindMap();
   //nodes = currentMindMap.nodes;
@@ -737,7 +737,7 @@ function mergeMaps(graph1, graph2, nodeReplaceList)
   graph1.edges.push(...graph2.edges)
 
   for (item of nodeReplaceList) {
-    if (graph1.nodes[item.nodeIndex1].text.split('/')[0].toLowerCase() != graph2.nodes[item.nodeIndex2].text.toLowerCase)
+    if (graph1.nodes[item.nodeIndex1].text.split('/')[0].toLowerCase() != graph2.nodes[item.nodeIndex2].text.toLowerCase())
     {
       graph1.nodes[item.nodeIndex1].text += "/" + graph2.nodes[item.nodeIndex2].text;
     }
@@ -803,27 +803,38 @@ function getLevenCloseNodes(graph1, graph2){
 //using WordNet search for synonyms in other nodes
 //will accept a string but only return synonyms of the FIRST WORD
 function getSynonyms(s){
-  const syns = "";
+  var syns = "";
   const natural = require('natural');
   const wordnet = new natural.WordNet();  
 
-  wordnet.lookup(s.split(/[^A-Za-z]/), function(details) {
-    syns = details[0].synonyms;
+  wordnet.lookup(s.split(/[^A-Za-z]/)[0], function(details) {
+    syns = details[0].synonyms; //ASSIGNMENT DOESN'T HAPPEN OUTSIDE OF SCOPR WHY?????
     console.log("Synonyms: " + details[0].synonyms);
   });
-
-  return syns;
+  
+  return syns; // returns "" from Line 806 assignment
 }
 
-function mergeBySynonoms(graph1, graph2){
+
+function mergeBySynonoms(graph1, graph2){ //this isn't pretty, make pretty
   var mergeList = [];
   var keywords = [];
   for (n1 of graph1.nodes){
     //get keyword(s)
-
-    for()
-      for (n2 of graph2.nodes){
-        
+    for (keyword of getKeywords(n1.text)){
+      //get synonyms
+      for(syn of getSynonyms(keyword)){
+        for (n2 of graph2.nodes){
+          //get keywords of graph2.nodes.text
+          //compare keywords1 and keywords 2
+          }
+        }
       }
     }
   }
+}
+
+//HOW TO COMBINE? BY KEYWORD? BY SYNONYM? BY LEVENSHTEIN? WHAT ORDER?
+
+// keywords then synonoms of keywords (toLowerCase())
+//levenshtein can be used with Search bar
