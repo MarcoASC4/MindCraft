@@ -737,7 +737,7 @@ function mergeMaps(graph1, graph2, nodeReplaceList)
   graph1.edges.push(...graph2.edges)
 
   for (item of nodeReplaceList) {
-    if (graph1.nodes[item.nodeIndex1].text != graph2.nodes[item.nodeIndex2].text)
+    if (graph1.nodes[item.nodeIndex1].text.split('/')[0].toLowerCase() != graph2.nodes[item.nodeIndex2].text.toLowerCase)
     {
       graph1.nodes[item.nodeIndex1].text += "/" + graph2.nodes[item.nodeIndex2].text;
     }
@@ -763,6 +763,67 @@ function mergeMaps(graph1, graph2, nodeReplaceList)
   return graph1;
 }
 
-//using NLP find similar spellings of words using levenstein distance
-//using NLP search for synonyms in other nodes
+//https://www.npmjs.com/package/keyword-extractor
+//keyword extraction takes the important words out of sentences
+function getKeywords(s){
+  var keyword_extractor = require("keyword-extractor");
+  var extraction_result = keyword_extractor.extract(s,{
+    language:"english",
+    remove_digits: true,
+    return_changed_case:true,
+    remove_duplicates: false
+});
 
+  return extraction_result;
+}
+
+//https://www.npmjs.com/package/fast-levenshtein
+//using NLP find similar spellings of words using levenshtein distance
+//where we will merge graph2 INTO graph1 and point edges of merge nodes to the graph1 node
+//Output: a list of ID pairs for node merges to make from graph2 into graph1
+function getLevenCloseNodes(graph1, graph2){
+  var threshold_distance = 2; //any text distance <= this number will result in the nodes merging
+  var d;
+  var mergeList = [];
+  for (n1 of graph1.nodes){
+    for (n2 of graph2.nodes){
+      //get levenshtein distance
+      //d = leven_distance(n1.text, n2. text);
+      if (d <= threshold_distance){
+        mergeList.push({"nodeIndex1": n1.index, "nodeIndex2": n2.index})
+      }
+    }
+  }
+
+  //return an ID pair list of nodes to merge
+  return mergeList;
+}
+
+//https://progur.com/2016/12/how-to-use-wordnet-in-nodejs-applications.html
+//using WordNet search for synonyms in other nodes
+//will accept a string but only return synonyms of the FIRST WORD
+function getSynonyms(s){
+  const syns = "";
+  const natural = require('natural');
+  const wordnet = new natural.WordNet();  
+
+  wordnet.lookup(s.split(/[^A-Za-z]/), function(details) {
+    syns = details[0].synonyms;
+    console.log("Synonyms: " + details[0].synonyms);
+  });
+
+  return syns;
+}
+
+function mergeBySynonoms(graph1, graph2){
+  var mergeList = [];
+  var keywords = [];
+  for (n1 of graph1.nodes){
+    //get keyword(s)
+
+    for()
+      for (n2 of graph2.nodes){
+        
+      }
+    }
+  }
