@@ -722,6 +722,108 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
 
 
 
+//https://www.npmjs.com/package/keyword-extractor
+//keyword extraction takes the important words out of sentences
+function getKeywords(s){
+  s = s.toLowerCase;
+  var keyword_extractor = require("keyword-extractor");
+  var extraction_result = keyword_extractor.extract(s,{
+    language:"english",
+    remove_digits: true,
+    return_changed_case:true,
+    remove_duplicates: false
+});
+
+  return extraction_result;
+}
+
+//https://www.npmjs.com/package/fast-levenshtein
+//using NLP find similar spellings of words using levenshtein distance
+//where we will merge graph2 INTO graph1 and point edges of merge nodes to the graph1 node
+//Output: a list of ID pairs for node merges to make from graph2 into graph1
+function mergebyLevenClose(graph1, graph2){
+  var threshold_distance = 2; //any text distance <= this number will result in the nodes merging
+  var d;
+  var replacementList = [];
+
+  var levenshtein = require('fast-levenshtein');
+  for (n1 of graph1.nodes){
+    for (n2 of graph2.nodes){
+      //get levenshtein distance
+      d = levenshtein.get(n1.text, n2. text);
+      if (d <= threshold_distance){
+        replacementList.push({"nodeIndex1": n1.index, "nodeIndex2": n2.index})
+      }
+    }
+  }
+
+  //return an ID pair list of nodes to merge
+  return mergeList;
+}
+
+//https://progur.com/2016/12/how-to-use-wordnet-in-nodejs-applications.html
+//using WordNet search for synonyms in other nodes
+//will accept a string but only return synonyms of the FIRST WORD
+var gSynList = [];
+function synonymsHandler(synonyms){
+  gSynList = synonyms;
+}
+
+function getSynonyms(s){
+  gSynList = []; //reset the synonyms list
+  
+  const natural = require('natural');
+  const wordnet = new natural.WordNet();  
+  var word = s.split(" ")[0]; //take the first word if its a sentence
+
+  wordnet.lookup(word, function(details) {
+    if (details[0]){
+      synonymsHandler(details[0].synonyms)
+      console.log(gSynList);
+      console.log("Synonyms: " + details[0].synonyms);
+    }
+    else{console.log("No synonyms for " + word);}
+  });
+
+  return gSynList; //returns []!
+}
+
+//finds which nodes to merge by seeing which nodes share exact words/synonyms from a the keywords found in their text
+function mergeBySynonomsOfKeywords(graph1, graph2){
+  n1Keywords = graph1.nodes.map( function(n){
+    var k = {"index": n.index, "keywords" : getKeywords(n.text)}
+    return k;
+  });
+
+  n1Synonyms = []
+
+  for (ks of n1Keywords){
+    ss = ks.keywords.map(k => getSynonyms(k)).flat()
+    n1Synonyms.push({index: ks.index, synonyms: ss}) //n1Synonyms is a 1D list containing the synonyms of all keywords of all nodes' text in graph1
+  }
+
+  console.log("n1Synonyms");
+  console.log(n1Synonyms);
+
+  n2Keywords = graph2.nodes.map( function(n){
+    var k = {"index": n.index, "keywords" : getKeywords(n.text)}
+    return k;
+  });
+
+  //make and the replacement list of ID 'tuples'
+  replacementList = [];
+  for(n1 in n1Synonyms){
+    for(n2 of n2Keywords){
+      n1.synonyms.map( function(s){
+        if (n2.keywords.includes(s)){
+          replacementList.push({nodeIndex1: n1.index, nodeIndex2: n2.index}) ;
+        }
+      });
+    }
+  }
+
+  return [...new Set(replacementList)];
+}
 
 //merge nodes and edges 
 //graph1 and graph 2 are different JSON graphs
@@ -729,6 +831,7 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
 //     merged node in graph1 and nodeIndex2 is the merge node in graph2
 function mergeMaps(graph1, graph2, nodeReplaceList)
 {
+  nodeReplaceList = [...new Set(mergeBySynonomsOfKeywords(graph1, graph2).push(mergebyLevenClose(graph1, graph2)))];
 
    //add all graph2 nodes EXCEPT those in nodeReplaceList.nodeIndex2
    graph1.nodes.push(...graph2.nodes.filter(n => !nodeReplaceList.some(item => item.nodeIndex2 === n.index)))
@@ -758,83 +861,37 @@ function mergeMaps(graph1, graph2, nodeReplaceList)
     }
   }
   
-    
-
   return graph1;
 }
 
-//https://www.npmjs.com/package/keyword-extractor
-//keyword extraction takes the important words out of sentences
-function getKeywords(s){
-  var keyword_extractor = require("keyword-extractor");
-  var extraction_result = keyword_extractor.extract(s,{
-    language:"english",
-    remove_digits: true,
-    return_changed_case:true,
-    remove_duplicates: false
-});
-
-  return extraction_result;
-}
-
-//https://www.npmjs.com/package/fast-levenshtein
-//using NLP find similar spellings of words using levenshtein distance
-//where we will merge graph2 INTO graph1 and point edges of merge nodes to the graph1 node
-//Output: a list of ID pairs for node merges to make from graph2 into graph1
-function getLevenCloseNodes(graph1, graph2){
-  var threshold_distance = 2; //any text distance <= this number will result in the nodes merging
-  var d;
-  var mergeList = [];
-  for (n1 of graph1.nodes){
-    for (n2 of graph2.nodes){
-      //get levenshtein distance
-      //d = leven_distance(n1.text, n2. text);
-      if (d <= threshold_distance){
-        mergeList.push({"nodeIndex1": n1.index, "nodeIndex2": n2.index})
-      }
-    }
-  }
-
-  //return an ID pair list of nodes to merge
-  return mergeList;
-}
-
-//https://progur.com/2016/12/how-to-use-wordnet-in-nodejs-applications.html
-//using WordNet search for synonyms in other nodes
-//will accept a string but only return synonyms of the FIRST WORD
-function getSynonyms(s){
-  var syns = "";
-  const natural = require('natural');
-  const wordnet = new natural.WordNet();  
-
-  wordnet.lookup(s.split(/[^A-Za-z]/)[0], function(details) {
-    syns = details[0].synonyms; //ASSIGNMENT DOESN'T HAPPEN OUTSIDE OF SCOPR WHY?????
-    console.log("Synonyms: " + details[0].synonyms);
-  });
-  
-  return syns; // returns "" from Line 806 assignment
+//combines any number of JSON graphs in a list
+// accumulator stores the combining map
+// currentValue is the next map to be combined
+// reduce() mergers maps down the list until they have been reduced to 1 map
+function mergeListOfMaps(mapList){
+  const merger = (accumulator, currentValue) => mergeMaps(accumulator, currentValue);
+  return mapList.reduce(merger);
+  //return mapList.reduce(merger, createGraphJSON());
 }
 
 
-function mergeBySynonoms(graph1, graph2){ //this isn't pretty, make pretty
-  var mergeList = [];
-  var keywords = [];
-  for (n1 of graph1.nodes){
-    //get keyword(s)
-    for (keyword of getKeywords(n1.text)){
-      //get synonyms
-      for(syn of getSynonyms(keyword)){
-        for (n2 of graph2.nodes){
-          //get keywords of graph2.nodes.text
-          //compare keywords1 and keywords 2
-          }
-        }
-      }
-    }
-  }
-}
-
-//HOW TO COMBINE? BY KEYWORD? BY SYNONYM? BY LEVENSHTEIN? WHAT ORDER?
-
-// keywords then synonoms of keywords (toLowerCase())
 //levenshtein can be used with Search bar
+//Input: String that's searched
+//return nodeID and text
+function searchWithinMap(graph, s){
+  var threshold_distance = 2; //maximum distance to return a result
+  var levenshtein = require('fast-levenshtein');
+
+  var result = [];
+
+  for(n of graph.nodes){
+    keywords = getKeywords(n.text)
+    for (k in keyword){
+      if (levenshtein.get(s, k) <= threshold_distance){
+        result.push({index: n.index, similarWord: k})
+      }
+    }
+  }
+
+  return result;
+}
