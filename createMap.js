@@ -761,35 +761,6 @@ function mergebyLevenClose(graph1, graph2){
   return mergeList;
 }
 
-//https://progur.com/2016/12/how-to-use-wordnet-in-nodejs-applications.html
-//using WordNet search for synonyms in other nodes
-//will accept a string but only return synonyms of the FIRST WORD
-var gSynList = [];
-function synonymsHandler(synonyms){
-  gSynList = synonyms;
-}
-
-function getSynonyms(s){
-  gSynList = []; //reset the synonyms list
-  
-  const natural = require('natural');
-  const wordnet = new natural.WordNet();  
-  var word = s.split(" ")[0]; //take the first word if its a sentence
-
-  wordnet.lookup(word, function(details) {
-    if (details[0]){
-      synonymsHandler(details[0].synonyms)
-      console.log(gSynList);
-      console.log("Synonyms: " + details[0].synonyms);
-    }
-    else{console.log("No synonyms for " + word);}
-  });
-
-  return gSynList; //returns []!
-}
-
-
-
 //finds which nodes to merge by seeing which nodes share exact words/synonyms from a the keywords found in their text
 function mergeBySynonomsOfKeywords(graph1, graph2){
   n1Keywords = graph1.nodes.map( function(n){
@@ -797,15 +768,6 @@ function mergeBySynonomsOfKeywords(graph1, graph2){
     return k;
   });
 
-  n1Synonyms = []
-
-  for (ks of n1Keywords){
-    ss = ks.keywords.map(k => getSynonyms(k)).flat()
-    n1Synonyms.push({index: ks.index, synonyms: ss}) //n1Synonyms is a 1D list containing the synonyms of all keywords of all nodes' text in graph1
-  }
-
-  console.log("n1Synonyms");
-  console.log(n1Synonyms);
 
   n2Keywords = graph2.nodes.map( function(n){
     var k = {"index": n.index, "keywords" : getKeywords(n.text)}
@@ -814,9 +776,9 @@ function mergeBySynonomsOfKeywords(graph1, graph2){
 
   //make and the replacement list of ID 'tuples'
   replacementList = [];
-  for(n1 in n1Synonyms){
+  for(n1 in n1Keywords){
     for(n2 of n2Keywords){
-      n1.synonyms.map( function(s){
+      n1.keywords.map( function(s){
         if (n2.keywords.includes(s)){
           replacementList.push({nodeIndex1: n1.index, nodeIndex2: n2.index}) ;
         }
