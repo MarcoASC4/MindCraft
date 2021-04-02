@@ -788,6 +788,8 @@ function getSynonyms(s){
   return gSynList; //returns []!
 }
 
+
+
 //finds which nodes to merge by seeing which nodes share exact words/synonyms from a the keywords found in their text
 function mergeBySynonomsOfKeywords(graph1, graph2){
   n1Keywords = graph1.nodes.map( function(n){
@@ -892,6 +894,5 @@ function searchWithinMap(graph, s){
       }
     }
   }
-
   return result;
 }
