@@ -10,6 +10,9 @@
   };
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
+  var userRef = firebase.database().ref("Users");
+
+  database = firebase.database();
 
   const auth = firebase.auth();
 
@@ -19,7 +22,10 @@
 
       auth.createUserWithEmailAndPassword(email.value, password.value)
       .then(function(){
-        window.location.href = "test.html";
+        //userRef.push(email.value);
+        localStorage.setItem("user", email.value);
+        alert("Welcome: " + email.value);
+        window.location = "test.html";
 
       })
       .catch(function(error) {
@@ -29,7 +35,6 @@
       errorCode)
       });
 
-      alert("Welcome: " + email.value);
 
   };
 
@@ -39,7 +44,9 @@
 
     auth.signInWithEmailAndPassword(email.value, password.value)
     .then(function(){
-      window.location.href = "test.html";
+      alert("Logged In: " + email.value);
+      localStorage.setItem("user", email);
+      window.location = "test.html";
 
     })
     .catch(function(error) {
@@ -50,7 +57,6 @@
     });
     
 
-    alert("Logged In: " + email.value);
 
   };
 

@@ -11,6 +11,7 @@
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-database.js"></script>
 
   </head>
@@ -19,9 +20,10 @@
     <script src="createMap.js"></script>
     <button id = "add"
     type="button" onclick = "addNode()" >Add New Node</button>
-    <button>New MindMap</button>
+    <button onclick="createNewMindMap()">New MindMap</button>
     <button><a href="allMindmaps.html">View All MindMap</a></button>
-    <button onclick="saveMindMap()">Save MindMap</button>
+    <button onclick="saveMindMap()">Save</button>
+    <button onclick="saveAs()">Save As</button>
     <button id="connect" type="button" onclick = "addEdge()">Connect two nodes</button>
     <button id="deleteNode" type="button" onclick = "deleteNode()">Delete a Node</button>
     </body>

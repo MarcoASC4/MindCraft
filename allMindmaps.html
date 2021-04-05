@@ -10,6 +10,7 @@
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-database.js"></script>
    
 
@@ -18,15 +19,20 @@
 
     <div class="top">
         <form method="get" action="#">
+
             <div class="tableBar">
                 <div class="tableDivision">
                     <input id="searchTerm" type="text" placeholder="Search Here" required>
                 </div>
                 <div class="tableDivision" id="myID">
-                    <button onclick="searchEnter()" type="submit">
+                    <button>Submit</button>
+                    <button onclick="searchEnter()" type="submit">Search</button>
+                    <button onclick="deleteMode()">Delete</button>
+                    <button onclick="createNewMindMap()">Create New MindMap</button>
+
 
                         <div ></div>
-                        Submit
+            
                     </button>
                 </div>
             </div>
@@ -35,7 +41,6 @@
 
     <script src="createMap.js"></script>
 
-    <button>Delete</button>
     <h1>Showcase all of the MindMaps here</h1>
     <p>double click to edit MindMap</p>
     <p>select a mindMap and click delete</p>

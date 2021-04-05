@@ -39,9 +39,9 @@ var current_key;
 // The keys of the mindmaps saved in the database
 var keys = [];
 
-if (localStorage.getItem("key") != null) current_key = localStorage.getItem("key");
+//if (localStorage.getItem("key") != null) 
+current_key = localStorage.getItem("key");
 //else window.location = "http://127.0.0.1:5501/allMindMaps.html";
-console.log("current_key: " + current_key);
 
   // Your web app's Firebase configuration
 var firebaseConfig = {
@@ -53,12 +53,31 @@ var firebaseConfig = {
   messagingSenderId: "339425742596",
   appId: "1:339425742596:web:953a7a9ea744d52197ca51"
 };
+
+if (localStorage.getItem("user") == null) window.location = "login.html";
+console.log(localStorage.getItem("user"));
+
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   var ref = firebase.database().ref("Graphs");
   database = firebase.database();
+  var user = firebase.auth().currentUser;
+  console.log("user: " + user);
+  var isExistingMindMap;
+  if (current_key != null) {
+    currentMindMap = createGraphJSON(localStorage.getItem("label"));
+    //currentMindMap.label = localStorage.getItem("label");
+    isExistingMindMap = true;
+  }
+
+  else
+  {
+    currentMindMap = createGraphJSON("Untitled MindMap");
+    isExistingMindMap = false;
+  }
   ref.on('value', gotData, errData);
-  currentMindMap = createGraphJSON("testGraph");
+  console.log("current_key: " + current_key);
+  console.log("currentMindMap.label: " + currentMindMap.label);
     //console.log("The Starting MindMap is: ");
     //console.log(currentMindMap); 
   if (window.location == "http://127.0.0.1:5501/test.html") showMindMap();
@@ -81,6 +100,18 @@ var firebaseConfig = {
 
 // }
 
+function createNewMindMap() {
+  localStorage.removeItem("key");
+  //localStorage.setItem("label", mindMap_name);
+  if (window.location.href == "http://127.0.0.1:5501/test.html") {
+      location.reload();
+  }
+  else
+  {
+    window.location = "http://127.0.0.1:5501/test.html"
+  }
+}
+
 function addNode(){
   newNode = createNodeJSON(200+(currentMindMap.nodes.length*100),200,200,100,50,false, false, false, false,getNewID());
   currentMindMap.nodes.push(newNode);
@@ -91,16 +122,55 @@ function addNode(){
 }
 
 function saveMindMap() {
+  //var newNodesKey = firebase.database().ref('Graphs').child('nodes').push().key;
+  //var DBmindMap = ref.child(s + "/store_location");
+  //var updates = {};
+  //updates['/nodes/' + newNodesKey] = currentMindMap;
+
+  var result;
+  if (isExistingMindMap)
+  {
+    var rootRef = firebase.database().ref('Graphs');
+    rootRef.orderByChild('label').equalTo(currentMindMap.label).on("value", function(snapshot) {
+      snapshot.forEach((function(child) { 
+        current_key = child.key
+        localStorage.setItem("key", current_key); })); 
+    });
+    rootRef = database.ref('Graphs/' + current_key);
+    result = rootRef.update(currentMindMap, dataSent);
+  } else
+  {
+    mindMap_name = prompt("Creating new Mindmap... What is the name?");
+    if (mindMap_name == null)
+    {
+      return;
+    }
+    currentMindMap.label = mindMap_name;
+    result = ref.push(currentMindMap);
+    isExistingMindMap = true;
+  }
+}
+
+function saveAs() {
   //var g = createGraphJSON("testGraph");
+  mindMap_name = prompt("Creating new Mindmap... What is the name?");
+  if (mindMap_name == null)
+  {
+    return;
+  }
+  currentMindMap.label = mindMap_name;
   var result = ref.push(currentMindMap, dataSent);
   console.log("currentMindMap in saveMindMap(): ");
   console.log(currentMindMap);
   console.log(result.key);
+
 }
 
 function dataSent(error, status) {
   console.log("dataSent(error, status): status = " + status);
 }
+
+
 
 function gotData(data) {
   console.log("Running gotData(data)...");
@@ -115,11 +185,16 @@ function gotData(data) {
   }
   console.log("Keys:");
   console.log(keys);
+  old_key = current_key;
   for (var i = 0; i< keys.length; i++) {
     // Creating each mindmap in the html from the database that we can click on and open to edit
     var key = keys[i];
+    current_key = keys[i];
+    localStorage.setItem("key", current_key);
     var li = createElement('li', ''); 
-    var ahref = createA('#', key);
+    //console.log()
+    current_label = mindMaps[key].label;
+    var ahref = createA('#', current_label);
     ahref.style('text-decoration: none');
     ahref.style('padding: 2rem');
     ahref.style('text-align: center');
@@ -132,7 +207,9 @@ function gotData(data) {
       li.parent('mindmapList');
       }
     }
+    localStorage.setItem("key", old_key);
   }
+
 
 function showMindMap() {
   console.log("Running showMindMap...");
@@ -140,8 +217,15 @@ function showMindMap() {
   //min = this.html();
   if (window.location.href != "http://127.0.0.1:5501/test.html")
   {
+    var ref = firebase.database().ref('Graphs');
+    ref.orderByChild('label').equalTo(this.html()).on("value", function(snapshot) {
+      snapshot.forEach((function(child) { 
+        current_key = child.key
+        localStorage.setItem("key", current_key); })); 
+        var c_label = this.html();
+        localStorage.setItem("label", c_label);
+    });
     console.log("NOT TEST.HTML");
-    localStorage.setItem("key", this.html());
     console.log(localStorage.getItem("key"));
   }
   if (window.location != "http://127.0.0.1:5501/test.html") window.location = "test.html";
@@ -160,13 +244,14 @@ function showMindMap() {
 
   function oneMindMap(data) {
     var DBmindMap = data.val();
+    console.log("DBmindmap: " + DBmindMap); 
     if (DBmindMap != null) {
       currentMindMap = DBmindMap;
       if(currentMindMap.edges == null){
-        currentMindMaps["edges"] = [];
+        currentMindMap.edges = [];
       }
       if(currentMindMap.nodes == null){
-        currentMindMaps["nodes"] = [];
+        currentMindMaps.nodes = [];
       }
     }
     console.log("currentMindMap = DBmindmap: ");
@@ -203,6 +288,7 @@ function deleteMindMap(mindMap_num) {
   var ref = database.ref('Graphs/' + key);
   ref.remove();
   keys.splice(mindMap_num - 1, 1);
+  location.reload();
 
 }
 
@@ -341,6 +427,8 @@ function getIndexFromID(id){
 //id assignment for nodes
 function getNewID(){
   do {
+    console.log("getNewID() running..");
+    console.log(currentMindMap.label);
     id = currentMindMap.label.concat(String(Math.floor(1000 + Math.random() * 9000)));
   } while (currentMindMap.nodes.some(n => n.index === id));
   
@@ -766,3 +854,166 @@ function mergeMaps(graph1, graph2, nodeReplaceList)
 //using NLP find similar spellings of words using levenstein distance
 //using NLP search for synonyms in other nodes
 
+////
+
+////
+///
+///
+///
+///
+    
+      //https://www.npmjs.com/package/keyword-extractor
+//keyword extraction takes the important words out of sentences
+function getKeywords(s){​
+  s.toLowerCase;
+  var keyword_extractor = require("keyword-extractor");
+  var extraction_result = keyword_extractor.extract(s,{​
+    language:"english",
+    remove_digits: true,
+    return_changed_case:true,
+    remove_duplicates: false
+}​);
+  return extraction_result;
+}​
+//finds which nodes to merge by seeing which nodes share exact words/synonyms from a the keywords found in their text
+function mergeByKeywords(graph1, graph2){​
+  n1Keywords = graph1.nodes.map( function(n){​
+    var k = {​"index": n.index, "keywords" : getKeywords(n.text)}​
+    return k;
+  }​);
+  n2Keywords = graph2.nodes.map( function(n){​
+    var k = {​"index": n.index, "keywords" : getKeywords(n.text)}​
+    return k;
+  }​);
+  //make and the replacement list of ID 'tuples'
+  replacementList = [];
+  for(n1 of n1Keywords){​
+    for(n2 of n2Keywords){​
+      n1.keywords.map( function(s){​
+        if (n2.keywords.includes(s)){​
+          replacementList.push({​nodeIndex1: n1.index, nodeIndex2: n2.index}​) ;
+        }​
+      }​);
+    }​
+  }​
+  return [...new Set(replacementList)];
+}​
+//merge nodes and edges 
+//graph1 and graph 2 are different JSON graphs
+//nodeReplaceList is a list of JS objects with nodeIndex1, and nodeIndex2 attributes where nodeIndex1 is the 
+//     merged node in graph1 and nodeIndex2 is the merge node in graph2
+function mergeMaps(graph1, graph2, nodeReplaceList)
+{​
+  if (graph2.nodes == []) return graph1;
+  nodeReplaceList = [...new Set(mergeByKeywords(graph1, graph2))];
+  console.log(nodeReplaceList);
+  //add all graph2 nodes EXCEPT those in nodeReplaceList.nodeIndex2
+  graph1.nodes.push(...graph2.nodes.filter(n => !nodeReplaceList.some(item => item.nodeIndex2 === n.index)))
+  //add all edges from graph2 to graph1
+  graph1.edges.push(...graph2.edges)
+  for (item of nodeReplaceList) {​
+    if (graph1.nodes[getIndexFromID2(graph1, item.nodeIndex1)].text.split('/')[0].toLowerCase != graph2.nodes[getIndexFromID2(graph2, item.nodeIndex2)].text.toLowerCase)
+    {​
+      graph1.nodes[item.nodeIndex1].text += "/" + graph2.nodes[item.nodeIndex2].text;
+    }​
+    //! the new edges now in graph1 from and to graph2.nodes[nodeIndex2] need to point to graph1.nodes[nodeIndex1]
+    for(i = 0; i < graph1.edges.length; i++)
+    {​
+      //find and replace old node in the SOURCE
+      if (graph1.edges[i].source == graph2.nodes[getIndexFromID2(graph2, item.nodeIndex2)].index)
+      {​
+        graph1.edges[i].source = graph1.nodes[getIndexFromID2(graph1, item.nodeIndex1)].index;
+      }​
+      //find and replace the old node in TARGET
+      if (graph1.edges[i].target == graph2.nodes[getIndexFromID2(graph2, item.nodeIndex2)].index)
+      {​
+        graph1.edges[i].target = graph1.nodes[getIndexFromID2(graph1, item.nodeIndex1)].index;
+      }​
+    }​
+  }​
+  return graph1;
+}​
+//combines any number of JSON graphs in a list
+// accumulator stores the combining map
+// currentValue is the next map to be combined
+// reduce() mergers maps down the list until they have been reduced to 1 map
+function mergeListOfMaps(mapList){​
+  const merger = (accumulator, currentValue) => mergeMaps(accumulator, currentValue);
+  return mapList.reduce(merger);
+  //return mapList.reduce(merger, createGraphJSON());
+}​
+//gets the index of the node for reference with the list
+function getIndexFromID2(graph,id){​
+  return graph.nodes.findIndex(n => n.index === id);
+}​
+function getNewID2(graph){​
+  do {​
+    id = graph.label.concat(String(Math.floor(1000 + Math.random() * 9000)));
+  }​ while (graph.nodes.some(n => n.index === id));
+  return id;
+}​
+//generates random number of graphs and uses the list of words in nodeTextList to assign words to nodes
+//Usage: testMergeGraphs(["happy", "excited"],3) will generate 3 graphs with 2-5 nodes which have the words "happy" or "excited"
+function testMergeGraphs(nodeTextList,num){​
+  var graphList = [];
+  //create random graphs
+  for(i=0; i < num; i++){​
+    tempG = createGraphJSON(i + "testGraph");
+    //generate a random number of nodes 
+    // randomly generated 2 <= N <= 5,  length array 0 <= A[N] < nodeTextList.length()
+    wordIndexList = Array.from({​length: 2+Math.floor(Math.random() * 4)}​, () => Math.floor(Math.random() * (nodeTextList.length)));
+    //create nodes
+    for(wIndex in wordIndexList){​
+      tempG.nodes.push(createNodeJSON(0,0,0,0,0,0,0,0,0,getNewID2(tempG)));
+      tempG.nodes[wIndex].text = nodeTextList[wordIndexList[wIndex]];
+    }​
+    //createEdges
+    tempG.edges.push(createEdgeJSON(tempG.nodes[0].index, tempG.nodes[1].index));
+    graphList.push(tempG);
+  }​
+  mergeResult = mergeListOfMaps(graphList);
+  console.log(mergeResult);
+  return mergeResult;
+}​
+//graphNodeText is a list of lists of words, each list of words will become a graph
+//Usage: testMergeGraphs2([["clean"],["dirty"]]) merges 2 graphs, one with 1 node called "clean" and another graph with 1 noce called "dirty"
+function testMergeGraphs2(graphNodeText){​
+  graphList = [];
+  i = 0;
+  for (gTexts of graphNodeText){​
+    tempG = createGraphJSON(i + "testGraph");
+    for (nText in gTexts){​
+      tempG.nodes.push(createNodeJSON(0,0,0,0,0,0,0,0,0,getNewID2(tempG)));
+      tempG.nodes[nText].text = gTexts[nText];
+    }​
+    i++;
+    //add edges
+    if(tempG.nodes.length >= 2){​
+      tempG.edges.push(createEdgeJSON(tempG.nodes[0].index, tempG.nodes[1].index));
+    }​
+    graphList.push(tempG);
+  }​
+  mergeResult = mergeListOfMaps(graphList);
+  console.log(mergeResult);
+  return mergeResult;
+}​
+testMergeGraphs2([["I hope this works","happy"],["ignorant","fear","tpyo"],["happy","last"]]);
+//testMergeGraphs2([["happy","sad"],["happy"]]);
+//testMergeGraphs(["happy","sad","excited","fear"]);
+//https://www.npmjs.com/package/fast-levenshtein
+//Input: String that's searched
+//return nodeID and text
+function searchWithinMap(graph, s){​
+  var threshold_distance = 2; //maximum distance to return a result
+  var levenshtein = require('fast-levenshtein');
+  var result = [];
+  for(n of graph.nodes){​
+    keywords = getKeywords(n.text)
+    for (k in keyword){​
+      if (levenshtein.get(s, k) <= threshold_distance){​
+        result.push({​index: n.index, similarWord: k}​)
+      }​
+    }​
+  }​
+  return result;
+}​
