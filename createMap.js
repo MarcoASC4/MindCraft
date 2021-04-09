@@ -1,3 +1,4 @@
+
 CANVAS_WIDTH =1920;
 CANVAS_HEIGHT = 1080;
 
@@ -13,26 +14,17 @@ var grabbedID = 0;
 var connectCounter = 0;
 
 //create Empty JSON Graph (we also need a function to import a saved json graph)
-let nodes = [];
-let edges = [];
-let inputs = [];
-let deletedNodes = [];
 var j;
 let px, py;
 var inputXVal = 100;
 var inputYVal = 40;
 // Creates the canvas
 
-var twoNodesinp1;
-var twoNodesinp2;
-
 var nodeInput;
 
 var source = "";
 var target = "";
-var nodeToDelete;
-var deleteNodeInp;
-var indexOfNode = 0;
+
 // The current_key is the key associated to the current mindmap being displayed
 // which is saved in the database. (Keys are a string that usually start with "M....")
 var current_key;
@@ -43,7 +35,7 @@ var keys = [];
 current_key = localStorage.getItem("key");
 //else window.location = "http://127.0.0.1:5501/allMindMaps.html";
 
-  // Your web app's Firebase configuration
+// Your web app's Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyCJuTDil5mz0rsHrmBTlKSh0nPstEbwd3s",
   authDomain: "mind-barf-e6745.firebaseapp.com",
@@ -54,15 +46,11 @@ var firebaseConfig = {
   appId: "1:339425742596:web:953a7a9ea744d52197ca51"
 };
 
-if (localStorage.getItem("user") == null) window.location = "login.html";
-console.log(localStorage.getItem("user"));
 
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   var ref = firebase.database().ref("Graphs");
   database = firebase.database();
-  var user = firebase.auth().currentUser;
-  console.log("user: " + user);
   var isExistingMindMap;
   if (current_key != null) {
     currentMindMap = createGraphJSON(localStorage.getItem("label"));
@@ -77,15 +65,11 @@ console.log(localStorage.getItem("user"));
   }
   ref.on('value', gotData, errData);
   console.log("current_key: " + current_key);
-  console.log("currentMindMap.label: " + currentMindMap.label);
-    //console.log("The Starting MindMap is: ");
-    //console.log(currentMindMap); 
+  console.log("currentMindMap.label: " + currentMindMap.label); 
   if (window.location == "http://127.0.0.1:5501/test.html") showMindMap();
 
   //showMindMap();
   //nodes = currentMindMap.nodes;
-  //console.log("Initial Nodes: ");
-  //console.log(nodes);
 
   
 //   //inputs.push(node1.inp);
@@ -99,10 +83,11 @@ console.log(localStorage.getItem("user"));
 //   //  }
 
 // }
+var combinedMapMade = false;
 
+// createNewMindMap Function directs the user to a new blank canvas to create a new mindmap 
 function createNewMindMap() {
   localStorage.removeItem("key");
-  //localStorage.setItem("label", mindMap_name);
   if (window.location.href == "http://127.0.0.1:5501/test.html") {
       location.reload();
   }
@@ -112,8 +97,9 @@ function createNewMindMap() {
   }
 }
 
+// addNode function pushes a new node to currentMindMap
 function addNode(){
-  newNode = createNodeJSON(200+(currentMindMap.nodes.length*100),200,200,100,50,false, false, false, false,getNewID());
+  newNode = createNodeJSON(200,200,200,100,50,false, false, false, false,getNewID());
   currentMindMap.nodes.push(newNode);
   selectedID = newNode.index;
   console.log("Node added, here's the JSON of currentMindMap")
@@ -121,12 +107,12 @@ function addNode(){
   redraw();
 }
 
-function saveMindMap() {
-  //var newNodesKey = firebase.database().ref('Graphs').child('nodes').push().key;
-  //var DBmindMap = ref.child(s + "/store_location");
-  //var updates = {};
-  //updates['/nodes/' + newNodesKey] = currentMindMap;
+/* saveMindMap function: 
+ When the mindmap is an existing mindmap the system would be able to override 
+ the exisiting mindmap by saving what the user edited on the mindmap to the firebase database.
+ However if the mindmap is new, then the save funciton would save the same way as the saveAs function */
 
+function saveMindMap() {
   var result;
   if (isExistingMindMap)
   {
@@ -151,6 +137,10 @@ function saveMindMap() {
   }
 }
 
+/* saveAs function: 
+ When saving a new mindmap, the function will create a new key
+ for it and save it to the firebase realtime database */
+
 function saveAs() {
   //var g = createGraphJSON("testGraph");
   mindMap_name = prompt("Creating new Mindmap... What is the name?");
@@ -166,11 +156,17 @@ function saveAs() {
 
 }
 
+/* datasent function: 
+ If there is an error then when you inspect the website 
+ the user would see the error that appeared */
+
 function dataSent(error, status) {
   console.log("dataSent(error, status): status = " + status);
 }
 
-
+/* gotData function: 
+ This function is getting the mindmap key data from firebase 
+ and displaying it on the allMindmaps.html file for the users to see when they view all of their mindmap */
 
 function gotData(data) {
   console.log("Running gotData(data)...");
@@ -188,11 +184,12 @@ function gotData(data) {
   old_key = current_key;
   for (var i = 0; i< keys.length; i++) {
     // Creating each mindmap in the html from the database that we can click on and open to edit
+    if (window.location == "http://127.0.0.1:5501/allMindmaps.html") 
+    {
     var key = keys[i];
     current_key = keys[i];
     localStorage.setItem("key", current_key);
     var li = createElement('li', ''); 
-    //console.log()
     current_label = mindMaps[key].label;
     var ahref = createA('#', current_label);
     ahref.style('text-decoration: none');
@@ -201,15 +198,22 @@ function gotData(data) {
     ahref.mousePressed(showMindMap);
     console.log("window.location : ");
     console.log(window.location.href);
-    if (window.location.href == "http://127.0.0.1:5501/allMindmaps.html") 
-    {
+      console.log("PARENT ~~~~");
       ahref.parent(li);
       li.parent('mindmapList');
-      }
     }
+    else
+    {
+      console.log("NOT PARENT ~~~");
+    }
+  }
     localStorage.setItem("key", old_key);
   }
 
+/*showMindMap Function: 
+ When the user click on the title of their saved mind map on the view all mindmap (allMindmaps.html) page,
+ the system would be triggered to redirect the user to the respective mind map
+ From there you can edit and save the mind map however you please to do so. */
 
 function showMindMap() {
   console.log("Running showMindMap...");
@@ -251,33 +255,17 @@ function showMindMap() {
         currentMindMap.edges = [];
       }
       if(currentMindMap.nodes == null){
-        currentMindMaps.nodes = [];
+        currentMindMap.nodes = [];
       }
     }
     console.log("currentMindMap = DBmindmap: ");
     console.log(currentMindMap);
-    // if (!currentMindMap.nodes)
-    // {
-    //   DBnodes = [];
-    // }
-    // else
-    // {
-    //   DBnodes = DBmindMap.nodes;
-    // }
-    // console.log(DBnodes);
-    // nodes = [];
-    // for (j = 0; j < DBnodes.length; ++j)
-    // {
-    //   currentNode = new Node(DBnodes[j].x_pos, DBnodes[j].y_pos, DBnodes[j].width, DBnodes[j].height, DBnodes[j].round_amt, DBnodes[j].grabbed, DBnodes[j].select, DBnodes[j].resizeDC, DBnodes[j].resizeKP, DBnodes[j].index);     
-    //   nodes.push(currentNode);
-    // }
-    console.log("nodes has been changed to:");
-    console.log(nodes);
+
     console.log("Mindmap has been changed to: ");
     console.log(currentMindMap);
   }
   //if (window.location != "http://127.0.0.1:5501/test.html") window.location = "test.html";
-  //console.log(this.html);
+  
 }
 
 
@@ -292,57 +280,84 @@ function deleteMindMap(mindMap_num) {
 
 }
 
+/* errData Function: prints the error that might appears*/
+
 function errData(err) {
   console.log(err);
 }
 
-//Accepts input to connect two nodes
-// function addEdge() {
+/*getAllMindMaps Function:
+ */
+var mindMap_objects = [];
+
+function getAllMindMaps(data)
+{
+  var mindMaps = data.val();
+  if (mindMaps == null) 
+  {
+    keys = []
+  }
+  else
+  {
+    keys = Object.keys(mindMaps);
+  }
   
-//   //source input box
-//   twoNodesinp1 = createInput('');
-//   twoNodesinp1.input(myInputEvent);
-//   twoNodesinp1.position(800,50);
-//   twoNodesinp1.size(80,40);
-//   twoNodesinp1.changed(connectingText1);
+  for (i = 0; i < keys.length; ++i)
+  {
+    console.log("keys[i] = ");
+    console.log(keys[i]);
+    var m_ref = database.ref('Graphs/' + keys[i]);
+    console.log("m_ref: ");
+    console.log(m_ref);
+  
+    m_ref.once('value', getOneMindMap, errData);
 
-//   //var s = twoNodesinp1.value();
+    function getOneMindMap(data) {
+      var DBmindMap = data.val();
+      console.log("DBmindMap in getOneMindMap: ");
+      console.log(DBmindMap);
+      mindMap_objects.push(DBmindMap);
+    }
+  }
+  //mindMap_objects = mindMap_objects[0];
+  if (window.location == "http://127.0.0.1:5501/allMindmaps.html")
+  {
+    console.log("mindMap_objects: ");
+    for (i = 0; i < mindMap_objects.length; ++i)
+    {
+      console.log(mindMap_objects[i]);
+      
+      if (mindMap_objects[i].nodes == null)
+      {
+        mindMap_objects[i].nodes = [];
+      }
+      if (mindMap_objects[i].edges == null)
+      {
+        mindMap_objects[i].edges = [];
+      }
+      
+    }
+    //test = mergeListOfMaps([createGraphJSON("test"), createGraphJSON("test2")]);
+    test = mergeListOfMaps(mindMap_objects);
+    console.log("mergeListOfMaps(test) = ");
+    console.log(test);
+    //e = testMergeGraphs(["happy", "excited"],3);
+    currentMindMap = test;
+    console.log("testMergeGraphs: ");
+    //console.log(e);
+    combinedMapMade = true;
+  }
+}
 
-//   //target input box
-//   twoNodesinp2 = createInput('');
-//   twoNodesinp2.input(myInputEvent);
-//   twoNodesinp2.position(900,50);
-//   twoNodesinp2.size(80,40);
-//   twoNodesinp2.changed(connectingText2);
 
-//   //var t = twoNodesinp2.value();
-
-//   //make JSON and store to edges list
-//   //var edge = createEdgeJSON(s,t);
-//   //edges.push(edge);
-
-
-// }
-
+//button function called from Add Edge Button
 function addEdge(){
   if(currentMindMap.nodes.length >= 2){ 
   connectCounter = 1; // this means the next 2 clicks will link those nodes
   }
 }
 
-//First connecting node
-function connectingText1() {
-  //connect1.push(twoNodesinp1.value());
-  s = twoNodesinp1.value();
-}
-
-//Second connecting node
-function connectingText2() {
-  var t = twoNodesinp2.value();
-  var edge = createEdgeJSON(s,t);
-  edges.push(edge);
-  redraw();
-}
+// setting up the basic blank canvas for the users
 
 function setup() {
   createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -353,21 +368,15 @@ function setup() {
   nodeInput.style('font-size', '24px');
 }
 
+//gets the text from the input box and stores it in the selected node
 function textFromBox() {
-  //console.log(this.numnodes());
-  //this.text = this.value();
-  //console.log(this.text);
-
   for (j=0; j<numnodes; j++){
     if(nodes[j].n.select)
     {
       nodes[j].n.text = nodeInput.value();
       console.log(nodes[j].n.text);
-      
     }
   }
-
-
 }
 
 function myInputEvent() {
@@ -380,43 +389,41 @@ function test(){
   console.log('Check');
 }
 
-// //Text box to enter a node to delete
-// function deleteNodeText() {
-
-//   deleteNodeInp = createInput();
-//   deleteNodeInp.input(myInputEvent);
-//   deleteNodeInp.position(1200,50);
-//   deleteNodeInp.size(80,40);
-//   deleteNodeInp.changed(deleteNode);
-
-// }
 
 //function to delete the node
 function deleteNode() {
-  //nodeToDelete = deleteNodeInp.value();
-  currentMindMap.nodes.splice(getIndexFromID(selectedID) ,1);
-  //numnodes -= 1;
+  if (currentMindMap.nodes != [])
+  {
+    currentMindMap.nodes.splice(getIndexFromID(selectedID) ,1);
 
-  //also delete edges
-  //nodeToDelete is the index or the ID of the node to delete
-  currentMindMap.edges = currentMindMap.edges.filter(e => (e.source === nodeToDelete || e.target === nodeToDelete));
+    //also delete edges
+    //nodeToDelete is the index or the ID of the node to delete
+    currentMindMap.edges = currentMindMap.edges.filter(e => (e.source === nodeToDelete || e.target === nodeToDelete));
+  }
 }
-
+/* The draw function will continuously execute, 
+this will create a constant background, 
+allows us to display nodes, and update node input
+*/
 function draw(){
-  // This background(66, 135, 245) updates the background so that there aren't several copies of
-  // the node when we drag it around
-  background(255, 255, 255);
-  // Draws our node
-  //ellipse(node.x, node.y, node.diameter, node.height);
+  clear();
+  background(255, 255, 255); //white BG
+  
   textAlign(CENTER);
-  //text(inp.numnodes(), node.x, node.y);
-  displaynodes(mouseX, mouseY);
+  
   drawEdges();
-  //  print(grabbed);
+  displaynodes(mouseX, mouseY);
   nodeInput.changed(textFromBox);
-  //console.log("Current MindMap: ");
-  //console.log(currentMindMap);
-  //console.log(currentMindMap.nodes);
+  if (!combinedMapMade)
+  {
+    console.log("window.location: " + window.location);
+    if (window.location == "http://127.0.0.1:5501/allMindmaps.html")
+    {
+      console.log("PASSED");
+      ref.on('value', getAllMindMaps, errData);
+    }
+  }
+  console.log("currentMindMap: " + currentMindMap.label);
 }
 
 //gets the index of the node for reference with the list
@@ -424,7 +431,7 @@ function getIndexFromID(id){
   return currentMindMap.nodes.findIndex(n => n.index === id);
 }
 
-//id assignment for nodes
+//unique id assignment for nodes
 function getNewID(){
   do {
     console.log("getNewID() running..");
@@ -442,10 +449,14 @@ function writeNode(id){
   text(currentMindMap.nodes[getIndexFromID(id)].text, currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width/2, currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height/1.8);
 }
 
-function checkClicked(px, py, id){
+//ran when mousePressed() is called
+//checks all nodes to see if clicked
+function checkClicked(px, py){
+  for (n of currentMindMap.nodes) {
+      id = n.index; 
   //let d = dist(px, py, this.x , this.n.y_pos);
-  console.log(getIndexFromID(id));
-  if ((px > currentMindMap.nodes[getIndexFromID(id)].x_pos && px < (currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width)) && ((py > currentMindMap.nodes[getIndexFromID(id)].y_pos) && py < (currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height))) {
+      console.log(getIndexFromID(id));
+      if ((px > currentMindMap.nodes[getIndexFromID(id)].x_pos && px < (currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width)) && ((py > currentMindMap.nodes[getIndexFromID(id)].y_pos) && py < (currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height))) {
       currentMindMap.nodes[getIndexFromID(id)].grabbed = true;
       grabbedID = id;
       currentMindMap.nodes[getIndexFromID(id)].offsetX = currentMindMap.nodes[getIndexFromID(id)].x_pos - px;
@@ -462,28 +473,38 @@ function checkClicked(px, py, id){
 
       //update node input field location and clear ""
       nodeInput.value(currentMindMap.nodes[getIndexFromID(id)].text);
-      nodeInput.position(currentMindMap.nodes[getIndexFromID(id)].x_pos + 20, currentMindMap.nodes[getIndexFromID(id)].y_pos+20);
+      nodeInput.position(currentMindMap.nodes[getIndexFromID(id)].x_pos + 20, currentMindMap.nodes[getIndexFromID(id)].y_pos);
+      break;
+    }
   }
 }
 
+//ran when doubleClick() is called
+//checks all nodes to see if double clicked
 function checkDoubleClick(px, py, id){
   if ((px > currentMindMap.nodes[getIndexFromID(id)].x_pos && px < (currentMindMap.nodes[getIndexFromID(id)].x_pos + currentMindMap.nodes[getIndexFromID(id)].width)) && ((py > currentMindMap.nodes[getIndexFromID(id)].y_pos) && py < (currentMindMap.nodes[getIndexFromID(id)].y_pos + currentMindMap.nodes[getIndexFromID(id)].height))) {
   console.log('double click');
   currentMindMap.nodes[getIndexFromID(id)].resizeDC = !currentMindMap.nodes[getIndexFromID(id)].resizeDC;
   }
 }
-
+/* The checkKeyPress function will continuously run in the background
+the function will then listen for keyboard inputs
+as we only want to listen for keypressed once a node has been double clicked,
+we have an if statement that confirms the node has been double clicked
+*/
 
 function checkKeyPress(id) {
   if (currentMindMap.nodes[getIndexFromID(id)].resizeDC) {
+    //initial check allows users to delete a node at anytime while editing the node
     if(keyCode == DELETE){
       delete currentMindMap.nodes[getIndexFromID(id)];
     }
 
+    //cases for moving nodes using arrow keys
     if (keyCode == RIGHT_ARROW) {
       currentMindMap.nodes[getIndexFromID(id)].width += 10;
       inputXVal = currentMindMap.nodes[getIndexFromID(id)].width - 90;
-      //this.inp.size(inputXVal, inputYVal)
+      
     }
     else if (keyCode == LEFT_ARROW) {
       if (currentMindMap.nodes[getIndexFromID(id)].width < 200){
@@ -493,13 +514,11 @@ function checkKeyPress(id) {
         currentMindMap.nodes[getIndexFromID(id)].width -= 10;
       }
       inputXVal = currentMindMap.nodes[getIndexFromID(id)].width - 90;
-      //this.inp.size(inputXVal, inputYVal)
     }
 
     else if (keyCode == DOWN_ARROW) {
       currentMindMap.nodes[getIndexFromID(id)].height += 10;
       inputYVal = currentMindMap.nodes[getIndexFromID(id)].height - 40;
-      //this.inp.size(inputXVal, inputYVal);
     }
     else if (keyCode == UP_ARROW) {
       if(currentMindMap.nodes[getIndexFromID(id)].height < 100){
@@ -509,114 +528,13 @@ function checkKeyPress(id) {
         currentMindMap.nodes[getIndexFromID(id)].height -= 10;
       }
       inputYVal = currentMindMap.nodes[getIndexFromID(id)].height - 40;
-      //this.inp.size(inputXVal, inputYVal);
     }
-
+    //end moving nodes using arrow keys
   }
 
 }
 
-// class Node {
-//   constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index) {
-//     this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index); //this is the JSON that we upload to Firebase
-//     console.log(this.n.index);
-//   //constructor(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP) {
-//     //this.n = createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP); //this is the JSON that we upload to Firebase
-//     //console.log("Node created. Its JSON object: ");
-//     //console.log(this.n);
-
-//     //this.inp = createInput();
-//   }
-
-//   writeNode(){
-//     textSize(24);
-//     strokeWeight(0);
-//     text(this.n.text, this.n.x_pos + this.n.width/2, this.n.y_pos + this.n.height/1.8);
-//   }
-
-//   checkClicked(px, py) {
-//     //let d = dist(px, py, this.x , this.n.y_pos);
-//     if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
-
-//         this.n.grabbed = true;
-//         this.n.offsetX = this.n.x_pos - px;
-//         this.n.offsetY = this.n.y_pos - py;
-//         deSelectAllNodes();
-//         this.n.select = true;
-
-//         nodeInput.value(this.n.text);
-
-//         nodeInput.position(this.n.x_pos + 20, this.n.y_pos+20);
-//     }
-
-//   }
-
-//    checkDoubleClick(px, py){
-//      if ((px > this.n.x_pos && px < (this.n.x_pos + this.n.width)) && ((py > this.n.y_pos) && py < (this.n.y_pos + this.n.height))) {
-//      console.log('yes');
-//      this.n.resizeDC = !this.n.resizeDC;
-//      }
-//    }
-
-//   checkKeyPress() {
-//     if (this.n.resizeDC) {
-
-//       if(keyCode == DELETE){
-//         nodes.splice(this.n.index,1);
-//         numnodes -= 1;
-        
-//         for(i=0; i<numnodes; i++){
-//           if (nodes[i].n.index > this.n.index){
-//             nodes[i].n.index -= 1;
-//           }
-//         }
-//       }
-
-//       if (keyCode == RIGHT_ARROW) {
-//         this.n.width += 10;
-//         inputXVal = this.n.width - 90;
-//         //this.inp.size(inputXVal, inputYVal)
-//       }
-//       else if (keyCode == LEFT_ARROW) {
-//         if (this.n.width < 200){
-          
-//         }
-//         else{
-//           this.n.width -= 10;
-//         }
-//         inputXVal = this.n.width - 90;
-//         //this.inp.size(inputXVal, inputYVal)
-//       }
-//       else if (keyCode == DOWN_ARROW) {
-//         this.n.height += 10;
-//         inputYVal = this.n.height - 40;
-//         //this.inp.size(inputXVal, inputYVal);
-//       }
-//       else if (keyCode == UP_ARROW) {
-//         if(this.n.height < 100){
-
-//         }
-//         else{
-//           this.n.height -= 10;
-//         }
-//         inputYVal = this.n.height - 40;
-//         //this.inp.size(inputXVal, inputYVal);
-//       }
-
-//     }
-
-//   }
-// }
-
-// var k;
-
-// function deSelectAllNodes()
-// {
-//   for (k=0; k<nodes.length; k++) {
-//     nodes[k].n.select = false;
-//   }
-// }
-
+//deselects all nodes
 function deSelectAllNodes()
 {
   for (n of currentMindMap.nodes) {
@@ -624,93 +542,61 @@ function deSelectAllNodes()
   }
 }
 
-// function mousePressed(){
-//   for (k=0; k<nodes.length; k++) {
-//     nodes[k].checkClicked(mouseX, mouseY);
-//   }
-// }
-
+//runs every time mouse is pressed
 function mousePressed(){
-  for (n of currentMindMap.nodes) {
-    checkClicked(mouseX, mouseY, n.index);
-  }
+  
+  //for (n of currentMindMap.nodes) { //check all ndoes to see if they are clicked
+  //  checkClicked(mouseX, mouseY, n.index);
+  //}
+  checkClicked(mouseX, mouseY);
 
-  if(connectCounter == 1){
-    source = selectedID;
+  if(connectCounter == 1){ //used for connecting nodes
+    source = selectedID; //store this clicked node as the source for connecting
     console.log("connectCounter is 1");
     connectCounter = connectCounter + 1;
   }
-  if(connectCounter == 2){
+  if(connectCounter == 2){ //used for connecting nodes
     if(source != selectedID){
-      target = selectedID;
-      currentMindMap.edges.push(createEdgeJSON(source, target));
-      console.log("connectCounter is 2");
+      target = selectedID; //store this clicked node as the target for connecting (as long as it's not the source)
+      
+      //add the edges to the graph/map
+      if(!(currentMindMap.edges.includes(createEdgeJSON(source, target)) || currentMindMap.edges.includes(createEdgeJSON(target,source)))){
+        currentMindMap.edges.push(createEdgeJSON(source, target));
+        console.log("connectCounter is 2");
+      }
       connectCounter = 0;
     }
   }
   
 }
 
-// function mouseReleased(){
-//   for (k=0; k<nodes.length; k++){
-//     nodes[k].n.grabbed = false;
-//   }
-// }
-
+//runs every time mouse is released
 function mouseReleased(){
+  //"releases" all nodes from selection
   for (n of currentMindMap.nodes) {
     n.grabbed = false;
   }
 }
 
-// function doubleClicked(){
-//   for (k=0; k<nodes.length; k++){
-//     nodes[k].checkDoubleClick(mouseX, mouseY);\
-//   }
-// }
-
+//runs every time a double click is registered
 function doubleClicked(){
+  //checks if a node at mouseX,mouseY is double clicked
   for (n of currentMindMap.nodes) {
     checkDoubleClick(mouseX, mouseY, n.index);
   }
 }
 
-// function keyPressed() {
-//   for (k=0; k<nodes.length; k++){
-//     nodes[k].checkKeyPress();
-//   }
-// }
-
+//runs every time a key is pressed
 function keyPressed() {
+  //check each node to see if it's selected
   for (n of currentMindMap.nodes) {
     checkKeyPress(n.index);
   }
 }
 
 
-
-// function displaynodes(px, py) {
-//   console.log("displayNodes() is being run...");
-//   stroke(51);
-//   strokeWeight(4);
-//   //scale(mouseX / 400, mouseY / 400);
-//     for (i=0; i<=numnodes-1; i++){
-//       strokeWeight(2);
-//       rect(nodes[i].n.x_pos, nodes[i].n.y_pos, nodes[i].n.width, nodes[i].n.height, nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt,nodes[i].n.round_amt, nodes[i].n.grabbed);
-//       if(nodes[i].n.grabbed) {
-//       // Movement
-//         console.log("grabbed");
-//         nodes[i].n.x_pos = px + nodes[i].n.offsetX;
-//         nodes[i].n.y_pos = py + nodes[i].n.offsetY;
-//         nodeInput.position(px + nodes[i].n.offsetX+50, py + nodes[i].n.offsetY+125);
-//       }
-//       nodes[i].writeNode();
-
-//   }
-// }
-
+//displays all nodes and there text
 function displaynodes(px, py) {
-  //console.log("displayNodes2() is being run...");
   stroke(51);
   strokeWeight(4);
   //scale(mouseX / 400, mouseY / 400);
@@ -719,7 +605,6 @@ function displaynodes(px, py) {
       rect(n.x_pos, n.y_pos, n.width, n.height, n.round_amt,n.round_amt,n.round_amt,n.round_amt, n.grabbed);
       if(n.grabbed) {
       // Movement
-        //console.log("grabbed");
         n.x_pos = px + n.offsetX;
         n.y_pos = py + n.offsetY;
         nodeInput.position(px + n.offsetX+50, py + n.offsetY+125);
@@ -729,25 +614,12 @@ function displaynodes(px, py) {
   }
 }
 
-//   function drawEdges(){
-//   if (edges.length > 0){
-//     strokeWeight(4);
-//     for (j=0; j<edges.length; j++)
-//     {
-//       var sx = nodes[edges[j].source].n.x_pos + nodes[edges[j].source].n.width;
-//       var sy = nodes[edges[j].source].n.y_pos + 50;
-//       var tx = nodes[edges[j].target].n.x_pos;
-//       var ty = nodes[edges[j].target].n.y_pos + 50;
-//       line(sx,sy,tx,ty);
-//     }
-//   }
-// }
-
+//draws lines from source to target nodes
 function drawEdges(){
   strokeWeight(4);
   for (e of currentMindMap.edges)
   {
-    var sx = currentMindMap.nodes[getIndexFromID(e.source)].x_pos + currentMindMap.nodes[getIndexFromID(e.source)].width;
+    var sx = currentMindMap.nodes[getIndexFromID(e.source)].x_pos + (currentMindMap.nodes[getIndexFromID(e.source)].width / 2);
     var sy = currentMindMap.nodes[getIndexFromID(e.source)].y_pos + 50;
     var tx = currentMindMap.nodes[getIndexFromID(e.target)].x_pos;
     var ty = currentMindMap.nodes[getIndexFromID(e.target)].y_pos + 50;
@@ -759,10 +631,6 @@ function drawEdges(){
 //create an empty graph JSON object
 function createGraphJSON(title)
 {
-  console.log("Nodes JSON: ");
-  console.log(nodes);
-  console.log("Edges JSON: ");
-  console.log(edges);
   var i;
   var g = {"label": title,
            "nodes": [], //no nodes
@@ -786,8 +654,6 @@ function createEdgeJSON(source, target)
   };
 }
 
-
-//NODE Methods
 //create a node JSON object
 function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeDC, resizeKP,index)
 {
@@ -809,6 +675,80 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
 }
 
 
+//taken from https://github.com/mirzaasif/JS-StopWord/blob/master/StopWord.js
+var stopWords = "a,able,about,above,abst,accordance,according,accordingly,across,act,actually,added,adj,\
+affected,affecting,affects,after,afterwards,again,against,ah,all,almost,alone,along,already,also,although,\
+always,am,among,amongst,an,and,announce,another,any,anybody,anyhow,anymore,anyone,anything,anyway,anyways,\
+anywhere,apparently,approximately,are,aren,arent,arise,around,as,aside,ask,asking,at,auth,available,away,awfully,\
+b,back,be,became,because,become,becomes,becoming,been,before,beforehand,begin,beginning,beginnings,begins,behind,\
+being,believe,below,beside,besides,between,beyond,biol,both,brief,briefly,but,by,c,ca,came,can,cannot,can't,cause,causes,\
+certain,certainly,co,com,come,comes,contain,containing,contains,could,couldnt,d,date,did,didn't,different,do,does,doesn't,\
+doing,done,don't,down,downwards,due,during,e,each,ed,edu,effect,eg,eight,eighty,either,else,elsewhere,end,ending,enough,\
+especially,et,et-al,etc,even,ever,every,everybody,everyone,everything,everywhere,ex,except,f,far,few,ff,fifth,first,five,fix,\
+followed,following,follows,for,former,formerly,forth,found,four,from,further,furthermore,g,gave,get,gets,getting,give,given,gives,\
+giving,go,goes,gone,got,gotten,h,had,happens,hardly,has,hasn't,have,haven't,having,he,hed,hence,her,here,hereafter,hereby,herein,\
+heres,hereupon,hers,herself,hes,hi,hid,him,himself,his,hither,home,how,howbeit,however,hundred,i,id,ie,if,i'll,im,immediate,\
+immediately,importance,important,in,inc,indeed,index,information,instead,into,invention,inward,is,isn't,it,itd,it'll,its,itself,\
+i've,j,just,k,keep,keeps,kept,kg,km,know,known,knows,l,largely,last,lately,later,latter,latterly,least,less,lest,let,lets,like,\
+liked,likely,line,little,'ll,look,looking,looks,ltd,m,made,mainly,make,makes,many,may,maybe,me,mean,means,meantime,meanwhile,\
+merely,mg,might,million,miss,ml,more,moreover,most,mostly,mr,mrs,much,mug,must,my,myself,n,na,name,namely,nay,nd,near,nearly,\
+necessarily,necessary,need,needs,neither,never,nevertheless,new,next,nine,ninety,no,nobody,non,none,nonetheless,noone,nor,\
+normally,nos,not,noted,nothing,now,nowhere,o,obtain,obtained,obviously,of,off,often,oh,ok,okay,old,omitted,on,once,one,ones,\
+only,onto,or,ord,other,others,otherwise,ought,our,ours,ourselves,out,outside,over,overall,owing,own,p,page,pages,part,\
+particular,particularly,past,per,perhaps,placed,please,plus,poorly,possible,possibly,potentially,pp,predominantly,present,\
+previously,primarily,probably,promptly,proud,provides,put,q,que,quickly,quite,qv,r,ran,rather,rd,re,readily,really,recent,\
+recently,ref,refs,regarding,regardless,regards,related,relatively,research,respectively,resulted,resulting,results,right,run,s,\
+said,same,saw,say,saying,says,sec,section,see,seeing,seem,seemed,seeming,seems,seen,self,selves,sent,seven,several,shall,she,shed,\
+she'll,shes,should,shouldn't,show,showed,shown,showns,shows,significant,significantly,similar,similarly,since,six,slightly,so,\
+some,somebody,somehow,someone,somethan,something,sometime,sometimes,somewhat,somewhere,soon,sorry,specifically,specified,specify,\
+specifying,still,stop,strongly,sub,substantially,successfully,such,sufficiently,suggest,sup,sure,t,take,taken,taking,tell,tends,\
+th,than,thank,thanks,thanx,that,that'll,thats,that've,the,their,theirs,them,themselves,then,thence,there,thereafter,thereby,\
+thered,therefore,therein,there'll,thereof,therere,theres,thereto,thereupon,there've,these,they,theyd,they'll,theyre,they've,\
+think,this,those,thou,though,thoughh,thousand,throug,through,throughout,thru,thus,til,tip,to,together,too,took,toward,towards,\
+tried,tries,truly,try,trying,ts,twice,two,u,un,under,unfortunately,unless,unlike,unlikely,until,unto,up,upon,ups,us,use,used,\
+useful,usefully,usefulness,uses,using,usually,v,value,various,'ve,very,via,viz,vol,vols,vs,w,want,wants,was,wasn't,way,we,wed,\
+welcome,we'll,went,were,weren't,we've,what,whatever,what'll,whats,when,whence,whenever,where,whereafter,whereas,whereby,wherein,\
+wheres,whereupon,wherever,whether,which,while,whim,whither,who,whod,whoever,whole,who'll,whom,whomever,whos,whose,why,widely,\
+willing,wish,with,within,without,won't,words,world,would,wouldn't,www,x,y,yes,yet,you,youd,you'll,your,youre,yours,yourself,\
+yourselves,you've,z,zero";
+//end of  https://github.com/mirzaasif/JS-StopWord/blob/master/StopWord.js
+var sw = stopWords.split(",");
+
+ function getKeywords(s){
+   s.toLowerCase;
+   extraction_result = s.split(' ').filter(word => !sw.some(s2 => s2 === word));
+   
+   return extraction_result;
+ }
+
+
+//finds which nodes to merge by seeing which nodes share exact words/synonyms from a the keywords found in their text
+function mergeByKeywords(graph1, graph2){
+  console.log("graph 1: ");
+  console.log(graph1);
+  console.log("graph 2: ");
+  console.log(graph2);
+  n1Keywords = graph1.nodes.map( function(n){
+    var k = {"index": n.index, "keywords" : getKeywords(n.text)}
+    return k;
+  });
+  n2Keywords = graph2.nodes.map( function(n){
+    var k = {"index": n.index, "keywords" : getKeywords(n.text)}
+    return k;
+  });
+  //make and the replacement list of ID 'tuples'
+  replacementList = [];
+  for(n1 of n1Keywords){
+    for(n2 of n2Keywords){
+      n1.keywords.map( function(s){
+        if (n2.keywords.includes(s)){
+          replacementList.push({nodeIndex1: n1.index, nodeIndex2: n2.index}) ;
+        }
+      });
+    }
+  }
+  return [...new Set(replacementList)];
+}
 
 
 //merge nodes and edges 
@@ -817,93 +757,11 @@ function createNodeJSON(x, y, width, height, round_amt, grabbed, select, resizeD
 //     merged node in graph1 and nodeIndex2 is the merge node in graph2
 function mergeMaps(graph1, graph2, nodeReplaceList)
 {
-
-   //add all graph2 nodes EXCEPT those in nodeReplaceList.nodeIndex2
-   graph1.nodes.push(...graph2.nodes.filter(n => !nodeReplaceList.some(item => item.nodeIndex2 === n.index)))
-
-  //add all edges from graph2 to graph1
-  graph1.edges.push(...graph2.edges)
-
-  for (item of nodeReplaceList) {
-    if (graph1.nodes[item.nodeIndex1].text != graph2.nodes[item.nodeIndex2].text)
-    {
-      graph1.nodes[item.nodeIndex1].text += "/" + graph2.nodes[item.nodeIndex2].text;
-    }
-
-    //! the new edges now in graph1 from and to graph2.nodes[nodeIndex2] need to point to graph1.nodes[nodeIndex1]
-    for(i = 0; i < graph1.edges.length; i++)
-    {
-      //find and replace old node in the SOURCE
-      if (graph1.edges[i].source == graph2.nodes[item.nodeIndex2].index)
-      {
-        graph1.edges[i].source = graph1.nodes[item.nodeIndex1].index;
-      }
-      //find and replace the old node in TARGET
-      if (graph1.edges[i].target == graph2.nodes[item.nodeIndex2].index)
-      {
-        graph1.edges[i].target = graph1.nodes[item.nodeIndex1].index;
-      }
-    }
-  }
-  
-    
-
-  return graph1;
-}
-
-//using NLP find similar spellings of words using levenstein distance
-//using NLP search for synonyms in other nodes
-
-////
-
-////
-///
-///
-///
-///
-    
-      //https://www.npmjs.com/package/keyword-extractor
-//keyword extraction takes the important words out of sentences
-function getKeywords(s){​
-  s.toLowerCase;
-  var keyword_extractor = require("keyword-extractor");
-  var extraction_result = keyword_extractor.extract(s,{​
-    language:"english",
-    remove_digits: true,
-    return_changed_case:true,
-    remove_duplicates: false
-}​);
-  return extraction_result;
-}​
-//finds which nodes to merge by seeing which nodes share exact words/synonyms from a the keywords found in their text
-function mergeByKeywords(graph1, graph2){​
-  n1Keywords = graph1.nodes.map( function(n){​
-    var k = {​"index": n.index, "keywords" : getKeywords(n.text)}​
-    return k;
-  }​);
-  n2Keywords = graph2.nodes.map( function(n){​
-    var k = {​"index": n.index, "keywords" : getKeywords(n.text)}​
-    return k;
-  }​);
-  //make and the replacement list of ID 'tuples'
-  replacementList = [];
-  for(n1 of n1Keywords){​
-    for(n2 of n2Keywords){​
-      n1.keywords.map( function(s){​
-        if (n2.keywords.includes(s)){​
-          replacementList.push({​nodeIndex1: n1.index, nodeIndex2: n2.index}​) ;
-        }​
-      }​);
-    }​
-  }​
-  return [...new Set(replacementList)];
-}​
-//merge nodes and edges 
-//graph1 and graph 2 are different JSON graphs
-//nodeReplaceList is a list of JS objects with nodeIndex1, and nodeIndex2 attributes where nodeIndex1 is the 
-//     merged node in graph1 and nodeIndex2 is the merge node in graph2
-function mergeMaps(graph1, graph2, nodeReplaceList)
-{​
+  console.log("MERGEMAPS");
+  console.log(graph1);
+  console.log(graph2);
+  console.log(nodeReplaceList);
+  console.log("~~~~~");
   if (graph2.nodes == []) return graph1;
   nodeReplaceList = [...new Set(mergeByKeywords(graph1, graph2))];
   console.log(nodeReplaceList);
@@ -911,109 +769,195 @@ function mergeMaps(graph1, graph2, nodeReplaceList)
   graph1.nodes.push(...graph2.nodes.filter(n => !nodeReplaceList.some(item => item.nodeIndex2 === n.index)))
   //add all edges from graph2 to graph1
   graph1.edges.push(...graph2.edges)
-  for (item of nodeReplaceList) {​
-    if (graph1.nodes[getIndexFromID2(graph1, item.nodeIndex1)].text.split('/')[0].toLowerCase != graph2.nodes[getIndexFromID2(graph2, item.nodeIndex2)].text.toLowerCase)
-    {​
-      graph1.nodes[item.nodeIndex1].text += "/" + graph2.nodes[item.nodeIndex2].text;
-    }​
+  for (item of nodeReplaceList) {
+    if (graph1.nodes[getIndexFromID2(graph1, item.nodeIndex1)].text.toLowerCase != graph2.nodes[getIndexFromID2(graph2, item.nodeIndex2)].text.toLowerCase)
+    {
+      graph1.nodes[item.nodeIndex1].text.concat("/" + graph2.nodes[item.nodeIndex2].text);
+    }
     //! the new edges now in graph1 from and to graph2.nodes[nodeIndex2] need to point to graph1.nodes[nodeIndex1]
     for(i = 0; i < graph1.edges.length; i++)
-    {​
+    {
       //find and replace old node in the SOURCE
       if (graph1.edges[i].source == graph2.nodes[getIndexFromID2(graph2, item.nodeIndex2)].index)
-      {​
+      {
         graph1.edges[i].source = graph1.nodes[getIndexFromID2(graph1, item.nodeIndex1)].index;
-      }​
+      }
       //find and replace the old node in TARGET
       if (graph1.edges[i].target == graph2.nodes[getIndexFromID2(graph2, item.nodeIndex2)].index)
-      {​
+      {
         graph1.edges[i].target = graph1.nodes[getIndexFromID2(graph1, item.nodeIndex1)].index;
-      }​
-    }​
-  }​
+      }
+    }
+  }
+  
   return graph1;
-}​
+}
+
+
 //combines any number of JSON graphs in a list
 // accumulator stores the combining map
 // currentValue is the next map to be combined
 // reduce() mergers maps down the list until they have been reduced to 1 map
-function mergeListOfMaps(mapList){​
+function mergeListOfMaps(mapList){
+  console.log("MERGELISTOFMAPS")
+  console.log("mapList______: ");
+  console.log(mapList[0]);
+  console.log("~~~~~~~~~~~~~~~~~");
   const merger = (accumulator, currentValue) => mergeMaps(accumulator, currentValue);
   return mapList.reduce(merger);
   //return mapList.reduce(merger, createGraphJSON());
-}​
+}
 //gets the index of the node for reference with the list
-function getIndexFromID2(graph,id){​
+function getIndexFromID2(graph,id){
   return graph.nodes.findIndex(n => n.index === id);
-}​
-function getNewID2(graph){​
-  do {​
+}
+function getNewID2(graph){
+  do {
     id = graph.label.concat(String(Math.floor(1000 + Math.random() * 9000)));
-  }​ while (graph.nodes.some(n => n.index === id));
+  } while (graph.nodes.some(n => n.index === id));
   return id;
-}​
+}
+
+
 //generates random number of graphs and uses the list of words in nodeTextList to assign words to nodes
 //Usage: testMergeGraphs(["happy", "excited"],3) will generate 3 graphs with 2-5 nodes which have the words "happy" or "excited"
-function testMergeGraphs(nodeTextList,num){​
+function testMergeGraphs(nodeTextList,num){
   var graphList = [];
   //create random graphs
-  for(i=0; i < num; i++){​
+  for(i=0; i < num; i++){
     tempG = createGraphJSON(i + "testGraph");
     //generate a random number of nodes 
     // randomly generated 2 <= N <= 5,  length array 0 <= A[N] < nodeTextList.length()
-    wordIndexList = Array.from({​length: 2+Math.floor(Math.random() * 4)}​, () => Math.floor(Math.random() * (nodeTextList.length)));
+    wordIndexList = Array.from({length: 2+Math.floor(Math.random() * 4)}, () => Math.floor(Math.random() * (nodeTextList.length)));
+    
     //create nodes
-    for(wIndex in wordIndexList){​
-      tempG.nodes.push(createNodeJSON(0,0,0,0,0,0,0,0,0,getNewID2(tempG)));
+    for(wIndex in wordIndexList){
+      tempG.nodes.push(createNodeJSON(200,200,200,100,50,false, false, false, false,getNewID2(tempG)));
       tempG.nodes[wIndex].text = nodeTextList[wordIndexList[wIndex]];
-    }​
+      tempG.nodes[wIndex].x_pos = Math.floor(Math.random() * 1000);
+      tempG.nodes[wIndex].y_pos = Math.floor(Math.random() * 500);
+    }
     //createEdges
     tempG.edges.push(createEdgeJSON(tempG.nodes[0].index, tempG.nodes[1].index));
     graphList.push(tempG);
-  }​
+  }
+  
   mergeResult = mergeListOfMaps(graphList);
   console.log(mergeResult);
   return mergeResult;
-}​
+}
+
+
 //graphNodeText is a list of lists of words, each list of words will become a graph
 //Usage: testMergeGraphs2([["clean"],["dirty"]]) merges 2 graphs, one with 1 node called "clean" and another graph with 1 noce called "dirty"
-function testMergeGraphs2(graphNodeText){​
+function testMergeGraphs2(graphNodeText){
   graphList = [];
   i = 0;
-  for (gTexts of graphNodeText){​
+  for (gTexts of graphNodeText){
     tempG = createGraphJSON(i + "testGraph");
-    for (nText in gTexts){​
+    for (nText in gTexts){
       tempG.nodes.push(createNodeJSON(0,0,0,0,0,0,0,0,0,getNewID2(tempG)));
       tempG.nodes[nText].text = gTexts[nText];
-    }​
+    }
     i++;
     //add edges
-    if(tempG.nodes.length >= 2){​
+    if(tempG.nodes.length >= 2){
       tempG.edges.push(createEdgeJSON(tempG.nodes[0].index, tempG.nodes[1].index));
-    }​
+    }
+    
     graphList.push(tempG);
-  }​
+  }
   mergeResult = mergeListOfMaps(graphList);
   console.log(mergeResult);
   return mergeResult;
-}​
-testMergeGraphs2([["I hope this works","happy"],["ignorant","fear","tpyo"],["happy","last"]]);
+}
+
+
+//testMergeGraphs2([["I hope this works","happy"],["ignorant","fear","tpyo"],["happy","last"]]);
 //testMergeGraphs2([["happy","sad"],["happy"]]);
 //testMergeGraphs(["happy","sad","excited","fear"]);
-//https://www.npmjs.com/package/fast-levenshtein
+
+//https://coderwall.com/p/uop8jw/fast-and-working-levenshtein-algorithm-in-javascript
+function levenshtein(a, b) {
+  if(a.length === 0) return b.length;
+  if(b.length === 0) return a.length;
+
+  var matrix = [];
+
+  // increment along the first column of each row
+  var i;
+  for(i = 0; i <= b.length; i++){
+    matrix[i] = [i];
+  }
+
+  // increment each column in the first row
+  var j;
+  for(j = 0; j <= a.length; j++){
+    matrix[0][j] = j;
+  }
+
+  // Fill in the rest of the matrix
+  for(i = 1; i <= b.length; i++){
+    for(j = 1; j <= a.length; j++){
+      if(b.charAt(i-1) == a.charAt(j-1)){
+        matrix[i][j] = matrix[i-1][j-1];
+      } else {
+        matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
+                                Math.min(matrix[i][j-1] + 1, // insertion
+                                         matrix[i-1][j] + 1)); // deletion
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
+ //end of https://coderwall.com/p/uop8jw/fast-and-working-levenshtein-algorithm-in-javascript
+
+
+//levenshtein can be used with Search bar
 //Input: String that's searched
 //return nodeID and text
-function searchWithinMap(graph, s){​
-  var threshold_distance = 2; //maximum distance to return a result
-  var levenshtein = require('fast-levenshtein');
-  var result = [];
-  for(n of graph.nodes){​
+function searchWithinMap(graph,s){
+  var threshold_distance = 2;
+  for(n of graph.nodes){
     keywords = getKeywords(n.text)
-    for (k in keyword){​
-      if (levenshtein.get(s, k) <= threshold_distance){​
-        result.push({​index: n.index, similarWord: k}​)
-      }​
-    }​
-  }​
-  return result;
-}​
+    console.log(keywords);
+    for (k of keywords){
+      if (levenshtein(s, k) <= threshold_distance){
+        return true;
+      }
+    }
+  }
+  return false;
+  }
+  
+  
+
+//called when user presses the submit button after searching
+const searchBtn = document.getElementById("searchBtn");
+searchBtn.addEventListener("click", function(event){
+  event.preventDefault();
+  var searchTerm = document.getElementById("searchTerm").value;
+  if (searchTerm == "")
+  {
+    alert("Please enter a term in the search field!");
+  }
+  else
+  {
+    if (searchWithinMap(currentMindMap, searchTerm)){
+      alert(searchTerm + " was found!");
+    }
+    else{
+      alert(searchTerm + " was not found.");
+    }
+     
+  }
+})
+/*
+function searchEnter(){
+  var searchTerm = document.getElementById("searchTerm").value;
+  searchResults = searchWithinMap(currentMindMap, searchTerm);
+
+  console.log("Results for " + searchTerm + ": " + searchResults);
+}
+*/
